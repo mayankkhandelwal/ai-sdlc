@@ -29,6 +29,7 @@ v2 becomes a SaaS product on API keys. Team: 3 engineers, owners of **Agents**, 
 | Need | Read |
 |---|---|
 | Where we stopped, what's next | `plans/handoff/latest.md` |
+| The whole plan: why, phases, testing, live projects | `docs/plan.md` |
 | What's ready, doing, in review | `python tools/board.py` |
 | Epics and status | `plans/roadmap.md`, `plans/epics/E-xx-*.md` |
 | One task: sub-tasks, done-when, proof | `plans/tasks/T-xx.y-*.md` |

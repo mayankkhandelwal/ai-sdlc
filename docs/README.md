@@ -2,6 +2,8 @@
 
 | Folder / file | What it is |
 |---|---|
+| `plan.md` | **The plan:** why one plan, phases, when testing happens, live project tests, milestones |
+| `live-tests/` | Reports from live project tests (L1–L4) and the data checklist |
 | `architecture/` | **Master** architecture (revision 2), one file per part. Wins over everything else (rule R6) |
 | `mvp-flow.md` | The same design as a step-by-step flow, for reading and learning |
 | `adr/` | One file per decision; `README.md` is the index |

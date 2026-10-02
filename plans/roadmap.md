@@ -22,5 +22,8 @@ Status values: todo, doing, review, done, blocked, needs-human, skipped (skipped
 | E-15 | [Figma gate and Figma path](epics/E-15-figma-gate-and-figma-path.md) | Product | Project lead | 0/7 | todo |
 | E-16 | [Full UI, package and commands](epics/E-16-full-ui-package-and-commands.md) | Platform | Project lead | 0/7 | todo |
 | E-17 | [Evaluation and pilot](epics/E-17-evaluation-and-pilot.md) | Agents | Project lead | 0/5 | todo |
+| E-18 | [Live project tests](epics/E-18-live-project-tests.md) | All owners | Project lead | 0/7 | todo |
+
+Live project tests (E-18) run after phases 4–7; see `docs/plan.md`.
 
 Agent epics (E-05, E-07, E-08, E-10, E-12, E-14) use the standard 7-task shape: design, build v1 and baseline, batch-1, batch-2 with regression, hold-out, audit, accept.
