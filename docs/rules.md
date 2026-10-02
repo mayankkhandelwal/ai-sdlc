@@ -38,7 +38,9 @@ can always be worked around, so the main protection is structural: the files are
 **Enforced by:**
 - The hold-out folder is outside the repo, so building chats have no reason or easy way to reach it.
 - A project hook (`tools/guard_holdout.py`, set in `.claude/settings.json` for every tool) blocks:
-  - any call whose text names the hold-out folder (reading, searching, listing or writing);
+  - any call that names the hold-out folder: in the target path for Read, Edit, Write and NotebookEdit
+    (file content that only mentions the name is allowed); anywhere in the input for Grep, Glob, shell
+    commands and other tools;
   - any command that mentions the `HOLDOUT_DIR` variable;
   - Grep or Glob whose `path` is the hold-out's parent folder or above;
   - shell commands using common recursive flags or tools (`-r`, `--recursive`, `rg`, `find`, `-Recurse`,

@@ -2,7 +2,7 @@
 
 The hold-out set lives OUTSIDE this repo. Its folder is given by the HOLDOUT_DIR
 environment variable (default: a sibling folder of the repo; see eval/README.md).
-This hook blocks any tool call that points at that folder:
+This hook blocks obvious and accidental tool calls that point at that folder:
 - Read, Edit, Write, NotebookEdit: by file or notebook path
 - Grep, Glob, Bash, PowerShell, and any other tool: anywhere in the call's input
 The only exception is one plain call of the scoring script, which prints summary
