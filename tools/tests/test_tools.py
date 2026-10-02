@@ -12,7 +12,9 @@ import unittest
 
 TOOLS = pathlib.Path(__file__).resolve().parent.parent
 NAME = "AI_SDLC" + "_hold" + "out"          # built in pieces so this file never names the folder in one piece
-H = f"D:/AI-Job/{NAME}"
+PATHS = json.loads((TOOLS / "paths.json").read_text(encoding="utf-8"))
+H = PATHS["holdout_dir"]                    # configured hold-out location
+WORK = str(pathlib.Path(H).parent)          # its parent folder
 
 
 def guard(tool, cwd=None, **tool_input):
@@ -56,9 +58,16 @@ class GuardHoldout(unittest.TestCase):
 
     def test_blocks_parent_searches(self):
         repo = str(TOOLS.parent)
-        self.assertEqual(guard("Grep", pattern="x", path="..", cwd=repo), 2)
-        self.assertEqual(guard("Grep", pattern="x", path=str(TOOLS.parent.parent)), 2)
+        worktree = f"{WORK}/worktrees/t-02-2"
+        self.assertEqual(guard("Grep", pattern="x", path="../..", cwd=worktree), 2)
+        self.assertEqual(guard("Grep", pattern="x", path=WORK), 2)
+        self.assertEqual(guard("Glob", pattern="*.md", path=WORK), 2)
         self.assertEqual(guard("Grep", pattern="x", path="eval", cwd=repo), 0)
+
+    def test_paths_config_is_used(self):
+        self.assertTrue(H.endswith(NAME))
+        self.assertNotIn("AI-Job", H, "hold-out must not live in D:/AI-Job")
+        self.assertNotIn("AI-Job", PATHS["worktrees_dir"], "worktrees must not live in D:/AI-Job")
 
     def test_fails_closed_on_bad_input(self):
         p = subprocess.run([sys.executable, str(TOOLS / "guard_holdout.py")], input="not json",

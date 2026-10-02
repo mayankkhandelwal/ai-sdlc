@@ -227,18 +227,21 @@ pre.box{margin:0;font-family:var(--f-mono);font-size:.78rem;line-height:1.55;min
   <span class="eyebrow">Many chats at once</span>
   <h2>Running several chats at the same time</h2>
   <p class="lead" style="color:var(--fg)">Yes: run several task chats in parallel. Each one gets its own folder (a git worktree) and its own branch, so they never touch each other's files.</p>
-  <div class="diagram"><pre class="box">D:\AI-Job\
-  AI_SDLC\              ← main repo. The LEAD chat runs here. main branch.
-  AI_SDLC-t-02-2\       ← worktree for task T-02.2. Builder chat #1. Branch t-02-2-...
-  AI_SDLC-t-02-4\       ← worktree for task T-02.4. Builder chat #2. Branch t-02-4-...
-  AI_SDLC-t-02-7\       ← worktree for task T-02.7. Builder chat #3. Branch t-02-7-...
-  (hold-out folder)     ← outside the repo. No chat opens it.</pre></div>
+  <div class="diagram"><pre class="box">D:\AI-Job  AI_SDLC\                    ← main project. The LEAD chat runs here. main branch.
+  (your other projects)       ← untouched
+
+D:\AI_SDLC_work\              ← this project's extras, outside D:\AI-Job
+  worktrees    t-02-2\                   ← task T-02.2 · chat "T-02.2 Builder" · branch t-02-2-...
+    t-02-4\                   ← task T-02.4 · chat "T-02.4 Builder"
+    t-02-7\                   ← task T-02.7 · chat "T-02.7 Builder"
+  (hold-out folder)           ← no chat opens it</pre></div>
   <div class="grid2">
     <div class="card"><h3>Rules for parallel chats</h3><ul>
       <li>One task per chat; one chat per task</li>
       <li>Each Builder writes only: its task file, its own handoff <code>plans/handoff/T-xx.y.md</code>, and the files its task produces</li>
       <li>Only the Lead edits <code>plans/roadmap.md</code> and <code>plans/handoff/latest.md</code>, and merges</li>
-      <li>Keep worktrees <b>next to</b> the repo, as above</li>
+      <li>Worktrees go in <code>D:\AI_SDLC_work\worktrees\</code>, never in <code>D:\AI-Job\</code> or inside the project</li>
+      <li>Name every chat: <code>Lead</code>, <code>T-02.2 Builder</code>, <code>T-02.2 Auditor</code> (full list in <code>docs/process/names.md</code>)</li>
     </ul></div>
     <div class="card"><h3>How many at once</h3><ul>
       <li>Start with <b>3 Builder chats + 1 Lead chat</b></li>
@@ -258,7 +261,7 @@ pre.box{margin:0;font-family:var(--f-mono);font-size:.78rem;line-height:1.55;min
 
     <div class="step">
       <div class="step-head"><span class="num"></span><h3>Put the repo on GitHub</h3><span class="pill p-you">You · task T-01.3 · ~15 min</span></div>
-      <p>Right now the repo exists only on your computer. Create an <b>empty private repository</b> on GitHub (no README), then run this in <code>D:\AI-Job\AI_SDLC</code>, replacing the URL:</p>
+      <p><b>Already pushed? Then only check the last part below.</b> Otherwise: create an <b>empty private repository</b> on GitHub (no README), then run this in <code>D:\AI-Job\AI_SDLC</code>, replacing the URL:</p>
       <div class="copy"><span class="lbl">Terminal</span><pre>git remote add origin https://github.com/YOUR-ORG/ai-sdlc.git
 git push -u origin main</pre><button type="button">Copy</button></div>
       <p>Then on GitHub: protect <code>main</code> (require pull requests) and invite the two other owners.</p>
@@ -266,24 +269,24 @@ git push -u origin main</pre><button type="button">Copy</button></div>
 
     <div class="step">
       <div class="step-head"><span class="num"></span><h3>Open 3 Builder chats in parallel</h3><span class="pill p-chat">Claude · week-1 spikes</span></div>
-      <p>These three need nothing from you. For each one: <b>(a)</b> create its folder with the command, <b>(b)</b> open a <b>new Claude Code session in that folder</b>, <b>(c)</b> paste the prompt.</p>
+      <p>These three need nothing from you. For each one: <b>(a)</b> create its folder with the command, <b>(b)</b> open a <b>new Claude Code session in that folder</b> and name it (e.g. <code>T-02.2 Builder</code>), <b>(c)</b> paste the prompt.</p>
       <div class="chats">
         <div class="chatcard">
           <b>T-02.2 · Guard hook spike</b>
           <span class="who">Platform · proves the safety hook sees which agent calls, and blocks on crash</span>
-          <div class="copy"><span class="lbl">(a) Terminal, in D:\AI-Job\AI_SDLC</span><pre>git worktree add ../AI_SDLC-t-02-2 -b t-02-2-spike-guard-hook main</pre><button type="button">Copy</button></div>
+          <div class="copy"><span class="lbl">(a) Terminal, in D:\AI-Job\AI_SDLC</span><pre>git worktree add D:/AI_SDLC_work/worktrees/t-02-2 -b t-02-2-spike-guard-hook main</pre><button type="button">Copy</button></div>
           <div class="copy"><span class="lbl">(c) Paste in the new session</span><pre>You are the Builder for T-02.2. Read plans/handoff/latest.md and plans/tasks/T-02.2-spike-guard-hook-identity-and-fail-closed.md. Then read only the files that task lists. Tell me the goal, the done-when and your plan before changing anything.</pre><button type="button">Copy</button></div>
         </div>
         <div class="chatcard">
           <b>T-02.4 · Plugin behaviour spike</b>
           <span class="who">Platform · command names, scripts on Windows, background agents, tool lists</span>
-          <div class="copy"><span class="lbl">(a) Terminal, in D:\AI-Job\AI_SDLC</span><pre>git worktree add ../AI_SDLC-t-02-4 -b t-02-4-spike-plugin-behaviour main</pre><button type="button">Copy</button></div>
+          <div class="copy"><span class="lbl">(a) Terminal, in D:\AI-Job\AI_SDLC</span><pre>git worktree add D:/AI_SDLC_work/worktrees/t-02-4 -b t-02-4-spike-plugin-behaviour main</pre><button type="button">Copy</button></div>
           <div class="copy"><span class="lbl">(c) Paste in the new session</span><pre>You are the Builder for T-02.4. Read plans/handoff/latest.md and plans/tasks/T-02.4-spike-plugin-behaviour.md. Then read only the files that task lists. Tell me the goal, the done-when and your plan before changing anything.</pre><button type="button">Copy</button></div>
         </div>
         <div class="chatcard">
           <b>T-02.7 · Model bake-off</b>
           <span class="who">Agents · same small task on Opus, Sonnet and Haiku</span>
-          <div class="copy"><span class="lbl">(a) Terminal, in D:\AI-Job\AI_SDLC</span><pre>git worktree add ../AI_SDLC-t-02-7 -b t-02-7-spike-model-bake-off main</pre><button type="button">Copy</button></div>
+          <div class="copy"><span class="lbl">(a) Terminal, in D:\AI-Job\AI_SDLC</span><pre>git worktree add D:/AI_SDLC_work/worktrees/t-02-7 -b t-02-7-spike-model-bake-off main</pre><button type="button">Copy</button></div>
           <div class="copy"><span class="lbl">(c) Paste in the new session</span><pre>You are the Builder for T-02.7. Read plans/handoff/latest.md and plans/tasks/T-02.7-spike-model-bake-off.md. Then read only the files that task lists. Tell me the goal, the done-when and your plan before changing anything.</pre><button type="button">Copy</button></div>
         </div>
       </div>
@@ -292,14 +295,14 @@ git push -u origin main</pre><button type="button">Copy</button></div>
 
     <div class="step">
       <div class="step-head"><span class="num"></span><h3>Audit each finished chat</h3><span class="pill p-audit">Claude · fresh session</span></div>
-      <p>When a Builder chat finishes, close it. Open a <b>new</b> session in the <b>same task folder</b> and paste this (change the task ID):</p>
+      <p>When a Builder chat finishes, close it. Open a <b>new</b> session in the <b>same task folder</b>, name it <code>T-02.2 Auditor</code>, and paste this (change the task ID):</p>
       <div class="copy"><span class="lbl">Paste in a new session, same folder</span><pre>You are the Auditor for T-02.2. Read plans/audits/README.md and plans/tasks/T-02.2-spike-guard-hook-identity-and-fail-closed.md. Check every done-when item against the proof, rerun the tests and the generality check, and write plans/audits/T-02.2.md with PASS or FAIL. Don't fix anything. Commit the audit file on this branch.</pre><button type="button">Copy</button></div>
       <p>FAIL → open a new Builder chat in that folder: "You are the Builder for T-02.2. Read the task file, its handoff and <code>plans/audits/T-02.2.md</code>, and fix what the audit found."</p>
     </div>
 
     <div class="step">
       <div class="step-head"><span class="num"></span><h3>Let the Lead merge</h3><span class="pill p-lead">Claude · main folder</span></div>
-      <p>Keep one Lead session open in <code>D:\AI-Job\AI_SDLC</code>. When an audit passes, paste:</p>
+      <p>Keep one session named <code>Lead</code> open in <code>D:\AI-Job\AI_SDLC</code>. When an audit passes, paste:</p>
       <div class="copy"><span class="lbl">Paste in the Lead session</span><pre>You are the Lead. Read plans/handoff/latest.md and every plans/handoff/T-*.md, and run python tools/board.py. Merge every task branch whose audit in plans/audits/ is PASS into main, mark those tasks done, remove their worktrees, update plans/roadmap.md and plans/handoff/latest.md, commit, and tell me which tasks are ready next. Don't write product code.</pre><button type="button">Copy</button></div>
     </div>
 

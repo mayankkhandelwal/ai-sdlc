@@ -52,8 +52,8 @@ can always be worked around, so the main protection is structural: the files are
 - `tools/check_generality.py` reads the hold-out's banned terms but never prints them; a match shows as
   `<hold-out term>`.
 - Tests in `tools/tests/` cover the guard's blocked and allowed cases.
-- `HOLDOUT_DIR` must be set in the environment Claude Code starts from (so the hook sees it), or the
-  hold-out must be in the default location the hook expects (a sibling folder of the repo).
+- The hold-out's location is `holdout_dir` in `tools/paths.json` (outside `D:/AI-Job/` and outside the
+  repo). `HOLDOUT_DIR` in the environment Claude Code starts from overrides it, e.g. on another machine.
 
 **What the guard is for:** it stops **accidental and obvious** access, the kind that happens when a chat
 follows a habit or a stray instruction. It is not a security boundary against **deliberate** access.

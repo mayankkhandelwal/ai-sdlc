@@ -37,6 +37,7 @@ v2 becomes a SaaS product on API keys. Team: 3 engineers, owners of **Agents**, 
 | Audits | `plans/audits/` (procedure in `README.md`) |
 | General failure types found so far | `plans/failure-catalog.md` |
 | How we work with Claude (cycle, skills, git) | `docs/process/how-we-work-with-claude.md` |
+| Names for folders, branches, files and chats | `docs/process/names.md` |
 | Rules in full | `docs/rules.md` |
 | Architecture (master), split in parts | `docs/architecture/00-…06-*.md` |
 | What we build, in flow form | `docs/mvp-flow.md` |
@@ -60,7 +61,8 @@ hold-out, audit, accept. An epic is accepted by someone who did not build it.
 ## Many chats at once
 
 Several chats may run in parallel, one task each. Each task chat works in **its own git worktree**
-(a sibling folder such as `../AI_SDLC-t-02-2`) on its own branch, and writes only:
+in `D:/AI_SDLC_work/worktrees/t-EE-N/` (never inside `D:/AI-Job/` or this repo; locations in
+`tools/paths.json`, names in `docs/process/names.md`) on its own branch, and writes only:
 its task file, its own handoff `plans/handoff/T-xx.y.md`, and the files the task produces.
 **Only the Lead** edits `plans/handoff/latest.md` and `plans/roadmap.md`, and merges branches after
 their audit passes.

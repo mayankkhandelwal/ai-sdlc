@@ -7,6 +7,7 @@ hook can stop the commit.
 
 Usage: python tools/check_generality.py [extra paths...]
 """
+import json
 import os
 import pathlib
 import re
@@ -20,9 +21,16 @@ MIN_LEN = 4
 
 
 def holdout_dir():
-    """The hold-out set lives outside the repo (rule R2); same default as tools/guard_holdout.py."""
-    default = ROOT.parent / ("AI_SDLC" + "_hold" + "out")
-    return pathlib.Path(os.environ.get("HOLDOUT_DIR") or default)
+    """The hold-out set lives outside the repo (rule R2); same lookup as tools/guard_holdout.py."""
+    if os.environ.get("HOLDOUT_DIR"):
+        return pathlib.Path(os.environ["HOLDOUT_DIR"])
+    try:
+        cfg = json.loads((ROOT / "tools" / "paths.json").read_text(encoding="utf-8"))
+        if cfg.get("holdout_dir"):
+            return pathlib.Path(cfg["holdout_dir"])
+    except (OSError, ValueError):
+        pass
+    return ROOT.parent / ("AI_SDLC" + "_hold" + "out")
 
 
 def load_terms():

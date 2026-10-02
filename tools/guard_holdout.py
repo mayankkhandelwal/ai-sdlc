@@ -1,7 +1,7 @@
 """Claude Code PreToolUse hook: keep the hold-out set unseen (rule R2).
 
 The hold-out set lives OUTSIDE this repo. Its folder is given by the HOLDOUT_DIR
-environment variable (default: a sibling folder of the repo; see eval/README.md).
+environment variable, else by tools/paths.json (see eval/README.md).
 This hook blocks obvious and accidental tool calls that point at that folder:
 - Read, Edit, Write, NotebookEdit: by file or notebook path
 - Grep, Glob, Bash, PowerShell, and any other tool: anywhere in the call's input
@@ -31,7 +31,22 @@ import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_NAME = "AI_SDLC" + "_hold" + "out"
-HOLDOUT_DIR = os.environ.get("HOLDOUT_DIR") or str(REPO.parent / DEFAULT_NAME)
+
+
+def configured_holdout():
+    """HOLDOUT_DIR env var, else tools/paths.json, else a sibling folder of the repo."""
+    if os.environ.get("HOLDOUT_DIR"):
+        return os.environ["HOLDOUT_DIR"]
+    try:
+        cfg = json.loads((REPO / "tools" / "paths.json").read_text(encoding="utf-8"))
+        if cfg.get("holdout_dir"):
+            return cfg["holdout_dir"]
+    except (OSError, ValueError):
+        pass
+    return str(REPO.parent / DEFAULT_NAME)
+
+
+HOLDOUT_DIR = configured_holdout()
 PATH_FIELDS = ("file_path", "notebook_path")
 ENV_NAME = re.compile(r"holdout_dir", re.IGNORECASE)        # $HOLDOUT_DIR, $env:HOLDOUT_DIR, %HOLDOUT_DIR%
 RECURSIVE = re.compile(r"(\s-[a-z]*r[a-z]*\b|\s--recursive\b|\brg\b|\bfind\b|-recurse\b|\btar\b|\bzip\b|\brobocopy\b|\bxcopy\b|\bdir\s+/s\b)",

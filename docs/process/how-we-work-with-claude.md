@@ -103,16 +103,17 @@ When something breaks: reproduce it, find the real cause, fix it, and add a test
 
 - `main` is always working. No direct commits to `main` except the context library itself.
 - One branch per task: `t-07-2-build-v1-and-baseline`.
-- Parallel work: each task chat runs in its own git worktree, a sibling folder of the repo, so
-  sessions never touch each other's files (`superpowers:using-git-worktrees`):
+- Parallel work: each task chat runs in its own git worktree in `D:/AI_SDLC_work/worktrees/`, so
+  sessions never touch each other's files (`superpowers:using-git-worktrees`). Never put worktrees in
+  `D:/AI-Job/` (other projects live there) or inside this repo (tools would scan them twice and a copy
+  could get committed). Locations are in `tools/paths.json`; names in `docs/process/names.md`.
 
   ```
-  git worktree add ../AI_SDLC-t-02-2 -b t-02-2-spike-guard-hook main
+  git worktree add D:/AI_SDLC_work/worktrees/t-02-2 -b t-02-2-spike-guard-hook main
   ```
 
-  Then open a new Claude session in `../AI_SDLC-t-02-2`. Keep worktrees as **siblings** of the repo,
-  because the hold-out guard expects the hold-out folder next to the repo (or set `HOLDOUT_DIR`).
-  Remove the worktree after the merge: `git worktree remove ../AI_SDLC-t-02-2`.
+  Then open a new Claude session in that folder and name the chat `T-02.2 Builder`.
+  Remove the worktree after the merge: `git worktree remove D:/AI_SDLC_work/worktrees/t-02-2`.
 - Parallel chats write only their own task file, their own handoff (`plans/handoff/T-xx.y.md`) and the
   files their task produces. Only the Lead edits `plans/roadmap.md` and `plans/handoff/latest.md`.
   That way two chats never change the same file.

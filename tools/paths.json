@@ -1,0 +1,6 @@
+{
+  "_about": "Where this project's extra folders live. Outside the repo and outside D:/AI-Job (which holds other projects). Change here only; every tool reads this file. HOLDOUT_DIR in the environment overrides holdout_dir.",
+  "work_dir": "D:/AI_SDLC_work",
+  "worktrees_dir": "D:/AI_SDLC_work/worktrees",
+  "holdout_dir": "D:/AI_SDLC_work/AI_SDLC_holdout"
+}
