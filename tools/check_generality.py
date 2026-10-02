@@ -1,11 +1,13 @@
 """Block test-document terms in agent, skill and prompt files (rule R1).
 
-Collects every term from eval/**/banned-terms.txt and searches the product's
+Collects every term from eval/**/banned-terms.txt and from the hold-out set
+outside the repo (HOLDOUT_DIR), and searches the product's
 instruction files for them. Exits 1 if any term is found, so the pre-commit
 hook can stop the commit.
 
 Usage: python tools/check_generality.py [extra paths...]
 """
+import os
 import pathlib
 import re
 import sys
@@ -17,9 +19,18 @@ ALLOW_FILE = ROOT / "tools" / "generality-allow.txt"
 MIN_LEN = 4
 
 
+def holdout_dir():
+    """The hold-out set lives outside the repo (rule R2); same default as tools/guard_holdout.py."""
+    default = ROOT.parent / ("AI_SDLC" + "_hold" + "out")
+    return pathlib.Path(os.environ.get("HOLDOUT_DIR") or default)
+
+
 def load_terms():
     terms = set()
-    for f in (ROOT / "eval").rglob("banned-terms.txt"):
+    sources = list((ROOT / "eval").rglob("banned-terms.txt"))
+    if holdout_dir().is_dir():
+        sources += list(holdout_dir().rglob("banned-terms.txt"))
+    for f in sources:
         for line in f.read_text(encoding="utf-8").splitlines():
             t = line.strip().lower()
             if len(t) >= MIN_LEN and not t.startswith("#"):

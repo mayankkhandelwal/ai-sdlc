@@ -3,6 +3,7 @@
 Run: python -m unittest discover -s tools/tests
 """
 import json
+import os
 import pathlib
 import subprocess
 import sys
@@ -10,37 +11,47 @@ import tempfile
 import unittest
 
 TOOLS = pathlib.Path(__file__).resolve().parent.parent
-H = "eval/" + "hold" + "out"  # built in pieces so this file never names the folder literally
+NAME = "AI_SDLC" + "_hold" + "out"          # built in pieces so this file never names the folder in one piece
+H = f"D:/AI-Job/{NAME}"
 
 
 def guard(tool, **tool_input):
+    env = dict(os.environ)
+    env.pop("HOLDOUT_DIR", None)
     p = subprocess.run([sys.executable, str(TOOLS / "guard_holdout.py")],
                        input=json.dumps({"tool_name": tool, "tool_input": tool_input}),
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, env=env)
     return p.returncode
 
 
 class GuardHoldout(unittest.TestCase):
-    def test_blocks_reading(self):
-        self.assertEqual(guard("Read", file_path=f"D:/repo/{H}/a/document.md"), 2)
-        self.assertEqual(guard("Bash", command=f"cat {H}/a/document.md"), 2)
+    def test_blocks_file_tools(self):
+        self.assertEqual(guard("Read", file_path=f"{H}/a/document.md"), 2)
+        self.assertEqual(guard("Read", file_path=f"D:\\AI-Job\\{NAME.lower()}\\a\\document.md"), 2)
+        self.assertEqual(guard("Read", file_path=f"D:/AI-Job/./{NAME}/a.md"), 2)
+        self.assertEqual(guard("Edit", file_path=f"{H}/a.md", old_string="x", new_string="y"), 2)
+        self.assertEqual(guard("NotebookEdit", notebook_path=f"{H}/n.ipynb"), 2)
+
+    def test_blocks_search_tools(self):
         self.assertEqual(guard("Grep", pattern="x", path=H), 2)
+        self.assertEqual(guard("Grep", pattern="x", path="D:/AI-Job", glob=f"{NAME}/**"), 2)
         self.assertEqual(guard("Glob", pattern=f"{H}/**/*.md"), 2)
 
-    def test_blocks_chaining_after_a_safe_command(self):
-        self.assertEqual(guard("Bash", command=f"git status && cat {H}/a.md"), 2)
-        self.assertEqual(guard("Bash", command=f"python tools/eval_score.py; cat {H}/a.md"), 2)
-        self.assertEqual(guard("Bash", command=f"git log --oneline | cat {H}/a.md"), 2)
-        self.assertEqual(guard("Bash", command=f"git commit -m 'x' && cat {H}/a.md"), 2)
-        self.assertEqual(guard("Bash", command=f"git commit -F {H}/a.md"), 2)
+    def test_blocks_shell(self):
+        for cmd in [f"cat {H}/a.md", f"git status && cat {H}/a.md",
+                    f"python tools/eval_score.py; cat {H}/a.md", f"python tools/eval_score.py --set {H} | cat",
+                    f"python tools/eval_score.py --set $(cat {H}/a.md)", f"python -c \"open('{H}/a.md').read()\"",
+                    f"python other/tools/eval_score.py --set {H}", f"cd {H} && cat a.md",
+                    f"Get-Content {H}/a.md"]:
+            self.assertEqual(guard("Bash", command=cmd), 2, cmd)
+        self.assertEqual(guard("PowerShell", command=f"Get-Content {H}\\a.md"), 2)
 
-    def test_allows_safe_and_unrelated(self):
-        self.assertEqual(guard("Bash", command=f"python tools/eval_score.py --set {H}"), 0)
-        self.assertEqual(guard("Bash", command=f"git commit -m 'Note about {H}'"), 0)
-        self.assertEqual(guard("Bash", command=f"git add {H}"), 0)
-        self.assertEqual(guard("Edit", file_path="docs/rules.md", new_string=f"mentions {H}"), 0)
+    def test_allows_scorer_and_unrelated(self):
+        self.assertEqual(guard("Bash", command=f"python tools/eval_score.py --set {H} --runs 3"), 0)
         self.assertEqual(guard("Read", file_path="docs/rules.md"), 0)
+        self.assertEqual(guard("Edit", file_path="docs/rules.md", old_string="a", new_string="b"), 0)
         self.assertEqual(guard("Bash", command="ls eval/batch-1"), 0)
+        self.assertEqual(guard("Grep", pattern="x", path="eval"), 0)
 
 
 def write_task(d, tid, status="todo", deps="—", role="Builder", proof="_x_"):

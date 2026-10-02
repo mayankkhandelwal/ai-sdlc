@@ -10,7 +10,8 @@ v2 becomes a SaaS product on API keys. Team: 3 engineers, owners of **Agents**, 
 1. **Build for any project.** Agents, skills and prompts must work for ANY project document.
    Never put anything specific to a test document into agent, skill or prompt files.
    Fix the general cause, never the single case. `python tools/check_generality.py` must pass.
-2. **Never read `eval/holdout/`.** Only the scoring script may open it. Never tune on it.
+2. **Never read the hold-out set.** It lives outside this repo (folder given by `HOLDOUT_DIR`); only
+   `python tools/eval_score.py` reads it, and only summary scores are shown. Never tune on it.
 3. **Code for exact work, AI for judgment.** Rules checks run before AI checks.
 4. **One chat = one task.** Start from `plans/handoff/latest.md` and one task file. End by updating
    the handoff and `plans/roadmap.md`, then commit.
@@ -40,7 +41,7 @@ v2 becomes a SaaS product on API keys. Team: 3 engineers, owners of **Agents**, 
 | What we build, in flow form | `docs/mvp-flow.md` |
 | Decisions | `docs/adr/` |
 | File formats and interfaces | `docs/contracts/` |
-| Test documents and method | `eval/README.md` (never `eval/holdout/`) |
+| Test documents and method | `eval/README.md` (batch-1, batch-2, batch-3; the hold-out is outside the repo) |
 | Expert audits of the design | `docs/audits/` |
 | Original HTML pages (reference only) | `docs/reference/` |
 
@@ -72,5 +73,5 @@ Say your role and task before doing anything. Set the task's status to `doing`.
 - `python tools/check_generality.py` — blocks test-document terms in agent, skill and prompt files
 - `python tools/board.py [E-xx]` — ready, doing, review, blocked and warnings
 - `python -m unittest discover -s tools/tests` — tests for the plan and safety tools
-- `tools/guard_holdout.py` runs automatically as a project hook (rule R2); `.rgignore` hides the hold-out from searches
+- `tools/guard_holdout.py` runs automatically as a project hook on every tool call (rule R2)
 - Git hooks live in `.githooks/` (`git config core.hooksPath .githooks` is set)

@@ -15,7 +15,8 @@ helps no other project. That produces a demo, not a product.
 
 **Enforced by:**
 - `tools/check_generality.py` scans `plugin/`, `agents/`, `skills/` and `prompts/` for every term in
-  `eval/**/banned-terms.txt`. The pre-commit hook runs it and blocks the commit on a match.
+  `eval/**/banned-terms.txt` and the hold-out's banned terms (read by the script from `HOLDOUT_DIR`).
+  The pre-commit hook runs it and blocks the commit on a match.
   Truly generic words can be allowed in `tools/generality-allow.txt`, with a reason.
 - Examples inside agent and skill files come from outside the test set and from mixed domains.
 - Every fix records the general failure type it addresses (in the commit message and the task file).
@@ -25,17 +26,28 @@ helps no other project. That produces a demo, not a product.
 
 ## R2 · The hold-out set stays unseen
 
-**Rule:** never open `eval/holdout/` in a chat. Only the scoring script reads it. Never change an agent
-while looking at hold-out results item by item; only the pass/fail summary is used.
+**Rule:** the hold-out set lives **outside this repo**, in a folder given by the `HOLDOUT_DIR` environment
+variable (the project lead knows where). No chat opens it. Only `python tools/eval_score.py` reads it and
+shows summary scores. Never change an agent while looking at hold-out results item by item. The hold-out
+is written by a person in a separate Claude session started outside this project, ideally a teammate who
+will not build agents (task T-01.5).
 
-**Why:** once a document has been seen while fixing, it no longer tests generality.
+**Why:** once a document has been seen while fixing, it no longer tests generality. A text-matching guard
+can always be worked around, so the main protection is structural: the files are not in the project.
 
-**Enforced by:** `.claude/settings.json` denies Claude's Read and Edit tools on `eval/holdout/**`, and a
-project hook (`tools/guard_holdout.py`) blocks shell, search and file tools whose paths point into the
-hold-out, except `tools/eval_score.py`, which prints only summary scores. Documents and commit messages
-may mention the folder. People follow this rule by agreement: the files are in the repo, so only habit
-keeps teammates from opening them. If hold-out content is ever seen, those
-documents move to `batch-2` and new hold-out documents are written.
+**Enforced by:**
+- The hold-out folder is outside the repo, so building chats have no reason or easy way to reach it.
+- A project hook (`tools/guard_holdout.py`, set in `.claude/settings.json`) blocks every tool call that
+  points at the hold-out folder, except one plain `python tools/eval_score.py <args>` call with no chaining,
+  pipes, redirects or substitution. It also blocks writing there, so no project chat can author it.
+- `tests` in `tools/tests/` cover the guard's blocked and allowed cases.
+
+**Known limits:** a hook only sees the text of a call. Code that builds the folder name from pieces, or a
+search over a whole drive, is not caught. Teammates are not technically blocked. These are covered by the
+folder being outside the repo and by agreement.
+
+If hold-out content is ever seen, those documents move into the repo as another batch (as the first
+hold-out did, now `batch-3`) and a new hold-out set is written.
 
 ## R3 · Code for exact work, AI for judgment
 

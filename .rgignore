@@ -1,2 +1,0 @@
-# Rule R2: repo-wide searches (Grep, Glob) skip the hold-out set.
-eval/holdout/

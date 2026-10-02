@@ -8,12 +8,14 @@
 ## Done in this chat
 
 - T-01.1: context library (first commit); audit PASS (`plans/audits/T-01.1.md`)
-- T-01.2: plans as epic → task → sub-task: 17 epics, 111 tasks, each with sub-tasks, done-when, proof
+- T-01.2: plans as epic → task → sub-task: 17 epics, 112 tasks, each with sub-tasks, done-when, proof
   and "needs from a person"; roles Lead / Builder / Auditor / Human; inbox; audit procedure; failure catalog
-- `tools/board.py`: ready list; warns about missing proof, tasks done or in review without a PASS audit,
-  unknown dependencies and cycles
-- `tools/guard_holdout.py`: project hook that blocks tools whose paths point into the hold-out, except the scorer
-- Two audits of T-01.2 failed (8 findings, then 4); all fixed
+- `tools/board.py`: ready list; warns about missing proof, missing PASS audits, unknown dependencies, cycles
+- Four audits of T-01.2 failed (8, 4, 3 findings, then 7 guard bypasses out of 51 attempts); all fixed
+- **Structural change for rule R2:** the hold-out set now lives outside the repo (`HOLDOUT_DIR`). The old
+  in-repo set is kept as `eval/batch-3`. `tools/guard_holdout.py` blocks every tool call that points at the
+  outside folder, including writes; `tools/tests/` has 7 passing tests
+- New task **T-01.5**: a person writes the new hold-out in a separate Claude session started outside this project
 
 ## Decided
 
@@ -21,11 +23,12 @@
 - Agent epics: 7 tasks with baseline, regression rerun and the failure catalog
 - Every epic's acceptance blocks v1 acceptance; dropped work is `skipped` with an ADR
 - Acceptance by someone who did not build it
+- The hold-out is protected by being outside the repo, not by pattern matching alone
 
 ## Next step (exact)
 
 - After T-01.2's audit passes: merge `t-01-2-plan-system` into `main`
-- People: **T-01.3** push to a private GitHub repo; **T-01.4** review answer keys and add real documents
+- People: **T-01.3** push to GitHub; **T-01.4** review answer keys (batch-1, 2, 3); **T-01.5** write the hold-out outside
 - Builders: **T-02.1 to T-02.7** (week-1 spikes), one chat each, from `main`
 - Start a builder chat with: "Read `plans/handoff/latest.md` and `plans/tasks/T-02.1-spike-stitch-from-a-typescript-script.md`."
 
@@ -36,5 +39,6 @@
 
 ## Files changed
 
-- `plans/`, `tools/board.py`, `tools/guard_holdout.py`, `.claude/settings.json`, `.gitattributes`,
-  `CLAUDE.md`, `docs/rules.md`, `docs/process/how-we-work-with-claude.md`, small fixes in `docs/*/README.md`
+- `plans/`, `eval/` (holdout → batch-3, README), `tools/board.py`, `tools/guard_holdout.py`,
+  `tools/check_generality.py`, `tools/tests/`, `.claude/settings.json`, `CLAUDE.md`, `docs/rules.md`,
+  `docs/process/how-we-work-with-claude.md`
