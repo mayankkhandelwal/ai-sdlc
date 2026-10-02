@@ -41,6 +41,12 @@ extra is created inside the main project folder.
 
 ## Chats
 
+**Opening a task chat in the Claude app:** set the folder to the task's worktree
+(`D:/AI_SDLC_work/worktrees/t-EE-N`) and leave the app's **worktree** box **unticked**. Ticking it makes
+the app create its own copy inside `D:/AI-Job/AI_SDLC/.claude/worktrees/`, inside the project, which is
+exactly what we avoid. (That folder is in `.gitignore` as a safety net.) The Lead chat uses the folder
+`D:/AI-Job/AI_SDLC`, also with the box unticked.
+
 Give every Claude chat a name when you open it, so you always know which window does what.
 
 | Chat | Name | Opened in |

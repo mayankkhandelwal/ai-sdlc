@@ -10,3 +10,6 @@ node_modules/
 # Local secrets (never commit keys)
 .env
 *.key
+
+# Worktrees made by the Claude app must never be committed (use D:/AI_SDLC_work/worktrees instead)
+.claude/worktrees/
