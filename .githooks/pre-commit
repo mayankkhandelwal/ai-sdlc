@@ -1,0 +1,5 @@
+#!/bin/sh
+# Rule R1: block test-document terms in agent, skill and prompt files.
+PY=python
+command -v python >/dev/null 2>&1 || PY=python3
+"$PY" tools/check_generality.py || exit 1

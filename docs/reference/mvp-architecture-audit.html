@@ -1,0 +1,372 @@
+<title>MVP AI Architecture Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: audit report. Verdict and method, then decisions for the owner, blocking fixes, platform fact-check, contradictions, pre-mortem, non-blocking items, week-1 tests, sources. */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --sunk:#eceef2; --line:#d5dae2;
+  --fg:#18202a; --muted:#57626f; --accent:#2a5bd7;
+  --crit:#b4232f; --crit-bg:#fbe7e8;
+  --high:#a9520a; --high-bg:#fcecdc;
+  --med:#6d5a00; --med-bg:#f6f0cf;
+  --ok:#1d6b3a; --ok-bg:#e1f2e7;
+  --dec:#7a4fb0; --dec-bg:#f2ebfa;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --surface:#161d25; --sunk:#1c242e; --line:#2b3542;
+    --fg:#e3e8ee; --muted:#9aa7b6; --accent:#8fb0ff;
+    --crit:#ff8a92; --crit-bg:#3d1a1e;
+    --high:#f5a65b; --high-bg:#3a2612;
+    --med:#e3cf6a; --med-bg:#332d10;
+    --ok:#7fd69c; --ok-bg:#16301f;
+    --dec:#d2b0ff; --dec-bg:#2d2140;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --surface:#161d25; --sunk:#1c242e; --line:#2b3542;
+  --fg:#e3e8ee; --muted:#9aa7b6; --accent:#8fb0ff;
+  --crit:#ff8a92; --crit-bg:#3d1a1e;
+  --high:#f5a65b; --high-bg:#3a2612;
+  --med:#e3cf6a; --med-bg:#332d10;
+  --ok:#7fd69c; --ok-bg:#16301f;
+  --dec:#d2b0ff; --dec-bg:#2d2140;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:940px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,2.8rem);font-weight:700}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.15rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent);overflow-wrap:anywhere}
+code{font-family:var(--f-mono);font-size:.85em}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:1.08rem;color:var(--muted);max-width:70ch}
+.note{font-size:.9rem;color:var(--muted);max-width:74ch}
+header.top{padding-block:48px 26px;display:grid;gap:14px;border-bottom:1px solid var(--line)}
+section{padding-block:40px 4px;display:grid;gap:16px}
+.sev{display:inline-block;font-family:var(--f-mono);font-size:.68rem;font-weight:500;letter-spacing:.04em;padding:2px 8px;border-radius:999px;white-space:nowrap;text-transform:uppercase}
+.s-crit{color:var(--crit);background:var(--crit-bg)}
+.s-high{color:var(--high);background:var(--high-bg)}
+.s-med{color:var(--med);background:var(--med-bg)}
+.s-ok{color:var(--ok);background:var(--ok-bg)}
+.s-dec{color:var(--dec);background:var(--dec-bg)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:12px}
+.panel p{max-width:74ch}
+.lenses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lens{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px;align-content:start;min-width:0}
+.lens b{font-family:var(--f-display);font-size:1.02rem}
+.lens p{font-size:.86rem;color:var(--muted)}
+.dcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;min-width:0}
+.dhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.opts > div{background:var(--sunk);border-radius:8px;padding:10px 12px;min-width:0}
+.opts .eyebrow{display:block;margin-bottom:3px}
+.opts p{font-size:.88rem}
+.opts > div.rec{background:var(--ok-bg)}
+.who{font-size:.82rem;color:var(--muted)}
+.fcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;min-width:0}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fgrid > div{background:var(--sunk);border-radius:8px;padding:10px 12px;min-width:0}
+.fgrid .eyebrow{display:block;margin-bottom:3px;color:var(--fg)}
+.fgrid p,.fgrid li{font-size:.88rem}
+.fgrid ul{margin:0;padding-left:1.1em;display:grid;gap:3px}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.88rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.m{font-family:var(--f-mono);font-size:.8rem;white-space:nowrap}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.box ul{margin:0;padding-left:1.2em;display:grid;gap:4px;font-size:.9rem}
+ul.src{font-size:.82rem;display:grid;gap:4px;margin:0;padding-left:1.2em}
+@media (max-width:780px){
+  .lenses,.opts{grid-template-columns:1fr 1fr}
+  .fgrid,.cols{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .lenses,.opts{grid-template-columns:1fr}
+}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">Independent audit · devil's-advocate method · 3 reviewers</span>
+  <h1>MVP AI Architecture Audit</h1>
+  <p class="lead">An independent review of the <a href="https://claude.ai/artifact/7nMt2vxxvNAoVzBdshZKnM">MVP AI Architecture</a>, all six parts. Three reviewers who did not write the document read it separately: an AI architect, a platform fact-checker who checked every technical claim against official documentation, and a principal engineer looking for contradictions and running a pre-mortem.</p>
+  <p class="note">Method: say what the design gets right first, then challenge it with a pre-mortem ("it failed three months in; why?"), inversion ("what would guarantee failure?") and questioning of assumptions, then give a verdict. Facts link to official sources; everything else is the reviewers' judgment.</p>
+</header>
+
+<section id="verdict">
+  <span class="eyebrow">Verdict</span>
+  <div class="panel">
+    <p><b>All three reviewers: ship with changes.</b> The skeleton is sound and better than most: code owns the state, records are versioned and never overwritten, screens are checked by reading their code, feedback goes through a decisions log, and safety has several layers. The problems are where the design assumes that AI, documents or outside tools behave neatly.</p>
+    <p><b>8 issues block the build.</b> Most are cheap to fix on paper now. Two of them need your decision: how Stitch is called, and how the question loop ends. The platform check also found some good news: hooks <i>can</i> tell which agent made a call, so the per-agent permission matrix can really be enforced.</p>
+  </div>
+  <div class="lenses">
+    <div class="lens"><b>AI architect</b><p>Ship with changes. Weak spots: quote matching on messy documents, an AI orchestrator trusted to follow the state rules, retries that push agents to invent, no limit on questions, the Figma builder.</p></div>
+    <div class="lens"><b>Platform fact-check</b><p>Most claims correct. Wrong or partly wrong: the Stitch SDK is TypeScript only; plugin secrets don't reach scripts run through Bash; a crashed hook lets everything through; Figma read limits of 200 calls a day.</p></div>
+    <div class="lens"><b>Consistency + pre-mortem</b><p>Ship with changes. 17 contradictions between parts, mostly drafting drift. Missing: full folder layout, record list, crash safety for outside calls, locking, project commands.</p></div>
+  </div>
+  <div class="box">
+    <h3>What is genuinely strong (keep it)</h3>
+    <ul>
+      <li>State machine owned by code, with idempotency keys and versioned records</li>
+      <li>Rules checks before AI checks; exact quote matching by code</li>
+      <li>Screen presence checked by parsing code or layers; vision only for the look</li>
+      <li>Decisions log rebuilt each round instead of patching the prompt</li>
+      <li>Layered safety: tool lists, guard hook, untrusted markers, outgoing scan</li>
+      <li>Agent cards that list failure modes and required tests before building</li>
+      <li>Honest about what isn't known yet</li>
+    </ul>
+  </div>
+</section>
+
+<section id="decide">
+  <span class="eyebrow">Needs your decision</span>
+  <h2>Three choices</h2>
+
+  <div class="dcard">
+    <div class="dhead"><span class="sev s-crit">Blocking</span><h3>A · How Stitch is called (ADR-11, ADR-16)</h3></div>
+    <p>Stitch's only official SDK is <b>TypeScript</b>, and it is a wrapper around Stitch's MCP endpoint. So "a Python script calls Stitch" has no official path. Separately, plugin secrets (the Stitch key) are not passed to scripts that run through the Bash tool. The platform check also couldn't find an official paid Stitch plan; please confirm what your account is.</p>
+    <div class="opts">
+      <div class="rec"><span class="eyebrow">Recommended</span><p><b>One TypeScript script for Stitch</b> using the official SDK; every other script stays Python. Key read from the OS keychain by the script itself</p></div>
+      <div><span class="eyebrow">Option 2</span><p><b>Stitch-caller agent</b> using Stitch's MCP from the plugin's <code>.mcp.json</code>; key passed through plugin settings. Simpler setup, but AI makes the calls</p></div>
+      <div><span class="eyebrow">Option 3</span><p><b>Python MCP client</b> talking to Stitch's endpoint. Keeps all-Python, but it's unofficial; needs a day-1 test</p></div>
+    </div>
+    <p class="who">Raised by: platform fact-check (verified), consistency review</p>
+  </div>
+
+  <div class="dcard">
+    <div class="dhead"><span class="sev s-high">Blocking</span><h3>B · How the question loop ends</h3></div>
+    <p>You chose "ask as many questions as needed". The reviewers found the stop rule can loop forever: the critic checks a fixed gap list every round, so it nearly always finds a "gap", and "important" isn't defined. Also, a script can't understand messy answers like "same as Q3" or one answer covering three questions.</p>
+    <div class="opts">
+      <div class="rec"><span class="eyebrow">Recommended</span><p><b>Keep "as many as needed", add a check-in:</b> define gap importance; after every 4 batches, ask "continue or use suggestions?"; an AI step maps answers to questions and the user confirms</p></div>
+      <div><span class="eyebrow">Option 2</span><p><b>Hard caps:</b> about 7 questions per batch, about 4 batches; then suggestions are used</p></div>
+      <div><span class="eyebrow">Option 3</span><p><b>No change:</b> unlimited, user stops it; risk of endless rounds</p></div>
+    </div>
+    <p class="who">Raised by: AI architect, consistency review</p>
+  </div>
+
+  <div class="dcard">
+    <div class="dhead"><span class="sev s-high">Blocking for Figma</span><h3>C · How the Figma path is protected</h3></div>
+    <p>You want both tools, and that stays. But the Figma path is the most likely reason the project slips. A 30-screen project needs about 450–1,200 Figma calls. On the Professional plan, Figma's <b>read</b> tools are limited to 200 calls a day, and the plan reads back after every step. Custom fonts are documented inconsistently. Limiting calls to one file may not be checkable, and building real Figma components isn't planned.</p>
+    <div class="opts">
+      <div class="rec"><span class="eyebrow">Recommended</span><p><b>Keep Figma, gate it:</b> a 1–2 week test with clear pass marks (calls per screen, quality score, fonts). The agent writes a layout file; a script turns it into Figma calls. Read back through the write tool, which has no limit</p></div>
+      <div><span class="eyebrow">Option 2</span><p><b>Figma through Stitch:</b> Stitch designs, then the design is moved into Figma (Figma has a tool that turns web pages into layers). Must be tested; Stitch's own export isn't available to code</p></div>
+      <div><span class="eyebrow">Option 3</span><p><b>No change:</b> the agent builds frames directly, with high usage and rate-limit risk</p></div>
+    </div>
+    <p class="who">Raised by: all three reviewers (rate limit verified)</p>
+  </div>
+</section>
+
+<section id="blocking">
+  <span class="eyebrow">Blocking fixes · no decision needed</span>
+  <h2>Fix before building</h2>
+
+  <div class="fcard">
+    <div class="dhead"><span class="sev s-crit">Critical</span><h3>1 · The guard hook lets everything through if it crashes</h3></div>
+    <div class="fgrid">
+      <div><span class="eyebrow">What's wrong</span><p>The document says the guard "fails closed". In Claude Code, a hook that crashes (exit code 1) lets the action proceed. Only an explicit "deny" blocks. Also, sub-agents can start other sub-agents by default.</p></div>
+      <div><span class="eyebrow">Fix</span><ul><li>Wrap all guard logic so any error returns "deny"</li><li>Keep its timeout short</li><li>Leave the <code>Agent</code> tool out of every agent's tool list</li><li>Test: force a crash, confirm the call is blocked</li></ul></div>
+    </div>
+    <p class="who">Part 5.12, 4.8 · platform fact-check (verified). Good news: the hook does receive the calling agent's type and ID, so the permission matrix in 3.4 can be enforced.</p>
+  </div>
+
+  <div class="fcard">
+    <div class="dhead"><span class="sev s-high">High</span><h3>2 · "AI never moves the state" isn't true yet</h3></div>
+    <div class="fgrid">
+      <div><span class="eyebrow">What's wrong</span><p>The orchestrator is the main Claude session. It decides when checks passed and calls <code>advance</code>. Over days and many rounds, its memory fills up and can be compacted, and it could skip a check or advance on an old result.</p></div>
+      <div><span class="eyebrow">Fix</span><ul><li><code>mvp-state advance</code> checks its own conditions: check results exist, their hashes match the current records, approvals exist where needed</li><li>Every <code>/mvp</code> rebuilds the orchestrator's working view from <code>mvp-state status</code>, not from chat history</li></ul></div>
+    </div>
+    <p class="who">Parts 3.6, 4.3, 5.1 · AI architect</p>
+  </div>
+
+  <div class="fcard">
+    <div class="dhead"><span class="sev s-high">High</span><h3>3 · Exact quote matching breaks on real documents, and IDs aren't stable</h3></div>
+    <div class="fgrid">
+      <div><span class="eyebrow">What's wrong</span><ul><li>PDF text has ligatures, hyphenation, smart quotes and headers in mid-sentence; tables become pipe text</li><li>Implied features (login, password reset) have no quote, so each becomes a question</li><li>Each rerun writes a new requirement; nothing keeps <code>REQ-12</code> the same, so answers, comments and approvals lose their links</li></ul></div>
+      <div><span class="eyebrow">Fix</span><ul><li>Normalise text before matching (Unicode, hyphens, quotes, headers)</li><li>Cite tables by cell, e.g. <code>DOC-3.2/T1/R4</code>; store character positions</li><li>Add a "convention" status for standard features, confirmed in one answer</li><li>Agent gets the previous version and must keep IDs; a rule checks it</li></ul></div>
+    </div>
+    <p class="who">Parts 2.4, 2.10, QG1 · AI architect</p>
+  </div>
+
+  <div class="fcard">
+    <div class="dhead"><span class="sev s-high">High</span><h3>4 · Retries treat every failure as the model's fault</h3></div>
+    <div class="fgrid">
+      <div><span class="eyebrow">What's wrong</span><ul><li>If the client's own text is vague, retrying pushes the agent to invent specifics, which breaks the "never invent" goal</li><li>A stronger model doesn't fix unclear instructions or missing information</li><li>Three agents already use the strongest model, so "rung 2" doesn't exist for them</li><li>Parts 2.9 and 4.5 describe different ladders</li></ul></div>
+      <div><span class="eyebrow">Fix: route by failure type, in one place (2.9)</span><ul><li>Format error → retry</li><li>Quote not found → script gives the closest real text</li><li>Source is vague → ask the user</li><li>Judge disagrees with itself → mark for a person</li><li>Model chosen by a setting in the task brief, not a second agent file</li></ul></div>
+    </div>
+    <p class="who">Parts 2.9, 4.4, 4.5 · AI architect, consistency review</p>
+  </div>
+
+  <div class="fcard">
+    <div class="dhead"><span class="sev s-high">High</span><h3>5 · Crashes during Stitch or Figma calls make duplicates</h3></div>
+    <div class="fgrid">
+      <div><span class="eyebrow">What's wrong</span><p>If Claude Code closes while waiting for Stitch, or halfway through a Figma frame, the plan has nothing saved to know what was already created. The "0 duplicate screens" goal fails.</p></div>
+      <div><span class="eyebrow">Fix</span><ul><li>Save the Stitch job ID and the Figma node IDs before waiting</li><li>One idempotency key per Figma section</li><li>Write files safely: temp file, then rename</li><li>A lock file so two sessions can't run one project</li></ul></div>
+    </div>
+    <p class="who">Parts 2.7, 2.9 · consistency review</p>
+  </div>
+
+  <div class="fcard">
+    <div class="dhead"><span class="sev s-high">High</span><h3>6 · Folder layout, record list and state format are incomplete</h3></div>
+    <div class="fgrid">
+      <div><span class="eyebrow">What's wrong</span><ul><li>Only some folders are named; gaps, questions, answers, feedback, issues and the package have no path, so the guard hook can't enforce paths</li><li>Records like tokens, samples, image descriptions, messages and issues aren't in the record list</li><li>Some files are edited in place (answers, logs, questions, review page), which breaks the hash rule</li></ul></div>
+      <div><span class="eyebrow">Fix</span><ul><li>Publish the full folder tree with each agent's write paths</li><li>Complete the record list and the <code>state.json</code> format</li><li>Version every file: e.g. <code>questions-b3.md</code>, <code>feedback-r2.md</code>; hash log lines</li></ul></div>
+    </div>
+    <p class="who">Parts 2.1, 2.10, 3.2 · consistency review</p>
+  </div>
+</section>
+
+<section id="facts">
+  <span class="eyebrow">Platform fact-check</span>
+  <h2>What the document got right and wrong</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Claim</th><th>Verdict</th><th>What's true</th></tr></thead>
+    <tbody>
+      <tr><td>Plugin parts: commands, agents, skills, hooks, MCP file, <code>bin/</code> scripts on the path</td><td><span class="sev s-ok">Correct</span></td><td>Docs now prefer skills over commands for new plugins</td></tr>
+      <tr><td>Plugin secret (Stitch key) available to scripts</td><td><span class="sev s-high">Partly</span></td><td>Stored in the OS credential store; given to hooks and MCP config, <b>not</b> to commands run through Bash</td></tr>
+      <tr><td>Private marketplace from git, pinned versions</td><td><span class="sev s-ok">Correct</span></td><td>—</td></tr>
+      <tr><td>Agent file fields and model names</td><td><span class="sev s-ok">Correct</span></td><td>Full model IDs also allowed</td></tr>
+      <tr><td>Sub-agents can't ask the user questions</td><td><span class="sev s-ok">Correct</span></td><td>—</td></tr>
+      <tr><td>Agents never start each other</td><td><span class="sev s-high">Partly</span></td><td>They can by default; remove the <code>Agent</code> tool</td></tr>
+      <tr><td>Agents run one after another</td><td><span class="sev s-high">Partly</span></td><td>In interactive sessions they run in the background by default; wait for completion or turn background off</td></tr>
+      <tr><td>Frame builder limited to Figma tools</td><td><span class="sev s-high">Partly</span></td><td>Tool list can name Figma tools; limiting to one file only through the hook, if the file key is visible</td></tr>
+      <tr><td>Guard hook knows which agent called and can block</td><td><span class="sev s-ok">Correct</span></td><td>Receives agent type and ID; can deny with a reason</td></tr>
+      <tr><td>Guard fails closed</td><td><span class="sev s-crit">Wrong</span></td><td>A crash lets the action proceed</td></tr>
+      <tr><td>Validation hook sends errors back to the agent</td><td><span class="sev s-ok">Correct</span></td><td>The file is already written at that point</td></tr>
+      <tr><td>Agent-finished hook reports usage</td><td><span class="sev s-high">Partly</span></td><td>No usage field; get it from telemetry or the transcript</td></tr>
+      <tr><td>Session-start hook shows a message to the user</td><td><span class="sev s-high">Partly</span></td><td>Must use the "system message" field</td></tr>
+      <tr><td>Bash limited to <code>mvp-*</code> scripts</td><td><span class="sev s-high">Partly</span></td><td>Plugins can't ship permission rules; must be enforced by the guard hook</td></tr>
+      <tr><td>Langfuse from hooks</td><td><span class="sev s-ok">Correct</span></td><td>Official Claude Code integration exists; pin its SDK version. Claude Code's telemetry export could replace much of the trace script</td></tr>
+      <tr><td>Figma write: Full seat, beta, about 20 KB, no images</td><td><span class="sev s-ok">Correct</span></td><td>Will become a paid, usage-based feature</td></tr>
+      <tr><td>Figma fonts must be uploaded</td><td><span class="sev s-med">Unclear</span></td><td>Figma's two documents disagree; test it</td></tr>
+      <tr><td>Figma limits</td><td><span class="sev s-crit">Missing</span></td><td>Professional plan: 200 read calls a day, 15 a minute; write calls exempt</td></tr>
+      <tr><td>Stitch callable from a Python script</td><td><span class="sev s-crit">Partly</span></td><td>Official SDK is TypeScript only; it wraps Stitch's MCP endpoint</td></tr>
+      <tr><td>Stitch generate, edit, export HTML and image</td><td><span class="sev s-ok">Correct</span></td><td>Calls wait up to about 5 minutes by default</td></tr>
+      <tr><td>Stitch paid plan and quota</td><td><span class="sev s-med">Unverified</span></td><td>Only third-party sources; free Labs product with monthly caps</td></tr>
+      <tr><td>Stitch to Figma export by code</td><td><span class="sev s-crit">Likely wrong</span></td><td>Not in the SDK; Figma's own web-to-layers tool is a possible route</td></tr>
+      <tr><td>PDF read 20 pages at a time; no DOCX</td><td><span class="sev s-ok">Correct</span></td><td>Page ranges need the poppler tool installed, also on Windows</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="contradictions">
+  <span class="eyebrow">Contradictions between parts</span>
+  <h2>Drafting drift to clean up</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Where</th><th>Conflict</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>2.2 vs MVP Flow page</td><td>Different state lists</td><td>2.2 is the master list; update the Flow page</td></tr>
+      <tr><td>Part 3 vs 1.5, 1.6, 1.9</td><td>Stitch called by script vs. by MCP</td><td>Settle decision A, then align all diagrams</td></tr>
+      <tr><td>2.9 vs 4.5</td><td>Different retry ladders; continue vs. stop</td><td>One ladder by failure type, in 2.9 only</td></tr>
+      <tr><td>4.5 vs 4.6</td><td>"Stronger model" for agents already on the strongest</td><td>Model as a setting; more effort instead</td></tr>
+      <tr><td>3.4 vs P1</td><td>Orchestrator has no Figma access but runs the Figma test</td><td>Test runs through the frame builder</td></tr>
+      <tr><td>3.4 vs 4.7</td><td>Frame builder writes a file but has no write tool</td><td>Give it write to its path only, or a script fetches the layers</td></tr>
+      <tr><td>S2b vs S11</td><td>Samples use tokens that only exist after "Go"</td><td>Samples use style message values</td></tr>
+      <tr><td>R6, S8 vs 3.4</td><td>AI checker writes records it isn't allowed to</td><td>Script builds records from checker output</td></tr>
+      <tr><td>3.6 vs R7, U6, D6, P7, S6</td><td>"Scripts never call AI" vs. mixed script + AI steps</td><td>Orchestrator runs the AI part; label actors clearly</td></tr>
+      <tr><td>4.7 vs M3</td><td>Critic output has no AI check</td><td>Add a gap-value rubric, or note the exception</td></tr>
+      <tr><td>2.2 vs 2.5</td><td>Requirement change from samples goes to the wrong state</td><td>Go to requirement drafting; mark samples stale</td></tr>
+      <tr><td>3.4 vs P4</td><td>Design Prompt agent can't read answers</td><td>Add answers to its reads</td></tr>
+      <tr><td>2.1 vs mutable files</td><td>"Never overwritten" vs. answers, logs, review page</td><td>Version them (blocking fix 6)</td></tr>
+      <tr><td>U3 vs U6</td><td>Items need a question ID before questions exist</td><td>Agent drafts the question; builder assigns IDs</td></tr>
+      <tr><td>2.10 vs 3.2</td><td>Record list incomplete</td><td>Complete it (blocking fix 6)</td></tr>
+      <tr><td>MVP Flow vs 6.5</td><td>60–90 vs. about 45 Stitch generations</td><td>One formula including fix loops and final edits</td></tr>
+      <tr><td>MVP Flow vs R2</td><td>When Stitch and Figma connections are tested</td><td>Follow R2</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="premortem">
+  <span class="eyebrow">Pre-mortem</span>
+  <h2>"Three months in, it failed. Why?"</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Most likely cause</th><th>Early warning</th><th>Prevention</th></tr></thead>
+    <tbody>
+      <tr><td>The Figma path swallowed the team</td><td>A form screen needs more than 40 calls, or scores below 3/5</td><td>Decision C: a gated test with pass marks</td></tr>
+      <tr><td>The Stitch call assumption was wrong</td><td>No working script call by day 3</td><td>Decision A on day 1, with the fallback designed</td></tr>
+      <tr><td>Usage limits made full runs impossible</td><td>Stage 2 alone uses more than 30% of a Max window; escalations on more than 20% of runs</td><td>Measure in week 1; normalise quotes; check samples of items; cap retries per project</td></tr>
+      <tr><td>Resume broke in edge cases</td><td>Kill-mid-step tests are flaky</td><td>Blocking fixes 5 and 6</td></tr>
+      <tr><td>Evaluation never got ready, so nothing was "done"</td><td>Fewer than 12 gold documents by week 4</td><td>Calibrate only the support and testable judges first; start labelling in week 1</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="nonblocking">
+  <span class="eyebrow">Not blocking · improve during the build</span>
+  <h2>Worth fixing, and what an expert would add</h2>
+  <div class="cols">
+    <div class="box"><h3>Improve</h3><ul>
+      <li><b>Consistency:</b> 1–2 samples don't show tables, pop-ups or empty states. Keep a growing design-system record (tokens + components); use tolerance bands instead of a 100% match; confirm Stitch accepts a reference screen</li>
+      <li><b>Evaluation workload:</b> 10 rubrics × 50 labels ≈ 500 labels. Calibrate the 4 gating judges first; define how gold items are matched; report averages with spread</li>
+      <li><b>Evaluation budget:</b> a "small API budget" conflicts with ADR-01; approve it explicitly or run evaluation on subscriptions</li>
+      <li><b>Cost model:</b> add retries, usage windows, Figma read limits; one Stitch formula</li>
+      <li><b>Project commands:</b> cancel, reopen a stage, purge, "Go", continue after budget pause; every human gate writes an approval record</li>
+      <li><b>Tool switch:</b> store tool and Figma file key in state; switching tools invalidates samples</li>
+      <li><b>Windows:</b> path normalisation in the guard, Python launcher, UTF-8 and line endings, credential manager, UTC times</li>
+      <li><b>Model pinning:</b> subscription uses model aliases; pinning may not be possible in v1</li>
+    </ul></div>
+    <div class="box"><h3>An expert would add</h3><ul>
+      <li>Memory across projects: reusable design systems, glossaries and past answers as defaults</li>
+      <li>An accessibility step: contrast and touch-size checks on tokens</li>
+      <li>Languages: output language, right-to-left, longer text, non-English documents end to end</li>
+      <li>Better approval experience: differences between versions, partial approval, inline comments</li>
+      <li>Ask early: mobile, web or both, and screen sizes</li>
+      <li>Realistic sample data in screen messages</li>
+      <li>A confidence note per item, so reviewers check the risky ones first</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="week1">
+  <span class="eyebrow">Week 1</span>
+  <h2>Hands-on tests that settle the open points</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Test</th><th>Settles</th></tr></thead>
+    <tbody>
+      <tr><td>Call Stitch from a script (TypeScript SDK, or Python to the MCP endpoint): generate, edit, get HTML; time and quota</td><td>Decision A</td></tr>
+      <tr><td>Figma: one form screen; calls per screen; does reading back through the write tool avoid the daily limit; does an uploaded font render; is the file key visible to the hook; can seat type be read without a test frame</td><td>Decision C</td></tr>
+      <tr><td>Stitch to Figma route through Figma's web-to-layers tool</td><td>Decision C option 2</td></tr>
+      <tr><td>Guard hook: agent type names for plugin agents and the main session; force a crash and confirm it blocks</td><td>Blocking fix 1</td></tr>
+      <tr><td>A <code>bin/</code> Python script on Windows; confirm plugin secrets are absent in Bash</td><td>Decision A, scripts</td></tr>
+      <tr><td>Background vs. foreground agents; naming exact Figma tools in a tool list</td><td>Runtime design</td></tr>
+      <tr><td>Whether <code>/mvp</code> works as a plugin command name or must be <code>/mvp:mvp</code></td><td>Commands</td></tr>
+      <tr><td>Langfuse hook with a pinned SDK; optional Claude Code telemetry to Langfuse</td><td>Tracing</td></tr>
+      <tr><td>Quote matching on 3 real PDFs after normalisation: share found word for word</td><td>Blocking fix 3</td></tr>
+      <tr><td>One full project on Max: usage per stage</td><td>Cost model, usage risk</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="sources">
+  <span class="eyebrow">Sources checked by the platform reviewer (2 Oct 2026)</span>
+  <ul class="src">
+    <li><a href="https://code.claude.com/docs/en/hooks">Claude Code hooks</a></li>
+    <li><a href="https://code.claude.com/docs/en/sub-agents">Claude Code sub-agents</a></li>
+    <li><a href="https://code.claude.com/docs/en/plugins-reference">Plugins reference</a></li>
+    <li><a href="https://code.claude.com/docs/en/plugin-marketplaces">Plugin marketplaces</a></li>
+    <li><a href="https://code.claude.com/docs/en/permissions">Permissions</a></li>
+    <li><a href="https://code.claude.com/docs/en/tools-reference">Tools reference</a></li>
+    <li><a href="https://code.claude.com/docs/en/monitoring-usage">Monitoring and telemetry</a></li>
+    <li><a href="https://langfuse.com/integrations/other/claude-code">Langfuse Claude Code integration</a></li>
+    <li><a href="https://developers.figma.com/docs/figma-mcp-server/write-to-canvas/">Figma write to canvas</a></li>
+    <li><a href="https://developers.figma.com/docs/figma-mcp-server/rate-limits-access/">Figma MCP rate limits</a></li>
+    <li><a href="https://help.figma.com/hc/en-us/articles/39252411778583">Figma MCP server FAQs</a></li>
+    <li><a href="https://github.com/figma/mcp-server-guide">Figma MCP server guide</a></li>
+    <li><a href="https://github.com/google-labs-code/stitch-sdk">Google Stitch SDK</a></li>
+  </ul>
+</section>
+
+</div>

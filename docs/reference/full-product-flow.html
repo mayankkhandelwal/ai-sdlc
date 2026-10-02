@@ -1,0 +1,865 @@
+<title>Agent Delivery Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column. Top: the whole flow as a staged diagram with the decision applied at each stage. Then one card per agent and per platform part, each with its own step-by-step flow. */
+:root{
+  --bg:#f5f7f9; --surface:#ffffff; --sunk:#eceff3; --line:#d6dce3;
+  --fg:#17202a; --muted:#566373; --accent:#0b6e75;
+  --agents:#4b47b8; --agents-bg:#ecebfb;
+  --platform:#0b6e75; --platform-bg:#e2f3f3;
+  --product:#9a5a07; --product-bg:#fbefdc;
+  --gate:#b4232f; --gate-bg:#fbe7e8;
+  --dec:#7a4fb0; --dec-bg:#f2ebfa;
+  --code-bg:#eef1f5;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --surface:#161d25; --sunk:#1c242e; --line:#2b3542;
+    --fg:#e3e8ee; --muted:#9aa7b6; --accent:#4cc3c9;
+    --agents:#a9a5ff; --agents-bg:#25244a;
+    --platform:#4cc3c9; --platform-bg:#123236;
+    --product:#f0b25a; --product-bg:#3a2a12;
+    --gate:#ff8a92; --gate-bg:#3d1a1e;
+    --dec:#d2b0ff; --dec-bg:#2d2140;
+    --code-bg:#1b232c;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --surface:#161d25; --sunk:#1c242e; --line:#2b3542;
+  --fg:#e3e8ee; --muted:#9aa7b6; --accent:#4cc3c9;
+  --agents:#a9a5ff; --agents-bg:#25244a;
+  --platform:#4cc3c9; --platform-bg:#123236;
+  --product:#f0b25a; --product-bg:#3a2a12;
+  --gate:#ff8a92; --gate-bg:#3d1a1e;
+  --dec:#d2b0ff; --dec-bg:#2d2140;
+  --code-bg:#1b232c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:960px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,2.9rem);font-weight:700}
+h2{font-size:1.75rem;font-weight:700}
+h3{font-size:1.3rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code{font-family:var(--f-mono);font-size:.85em}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:1.08rem;color:var(--muted);max-width:68ch}
+.note{font-size:.92rem;color:var(--muted);max-width:72ch}
+
+header.top{padding-block:48px 26px;display:grid;gap:14px;border-bottom:1px solid var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.86rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:.7rem;font-weight:500;letter-spacing:.03em;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.o-agents{color:var(--agents);background:var(--agents-bg)}
+.o-platform{color:var(--platform);background:var(--platform-bg)}
+.o-product{color:var(--product);background:var(--product-bg)}
+.o-gate{color:var(--gate);background:var(--gate-bg)}
+.o-dec{color:var(--dec);background:var(--dec-bg)}
+.o-soft{color:var(--muted);background:var(--sunk)}
+
+section{padding-block:42px 6px;display:grid;gap:18px}
+
+/* ---------- overview diagram ---------- */
+.diagram{display:grid;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.drow{display:grid;grid-template-columns:118px minmax(0,1fr);gap:14px;align-items:start;padding-block:12px}
+.drow + .drow{border-top:1px dashed var(--line)}
+.dlabel{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-top:8px}
+.dbody{display:grid;gap:8px;min-width:0}
+.boxes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.box{display:inline-flex;flex-direction:column;gap:3px;background:var(--sunk);border-radius:8px;padding:8px 12px;text-decoration:none;color:var(--fg);min-width:0}
+.box strong{font-family:var(--f-display);font-size:1rem;font-weight:600;line-height:1.2}
+.box small{font-size:.78rem;color:var(--muted)}
+a.box:hover{outline:1px solid var(--accent)}
+.box.a{background:var(--agents-bg)} .box.p{background:var(--platform-bg)} .box.c{background:var(--product-bg)}
+.box.wide{flex:1 1 100%}
+.arr{color:var(--muted);font-family:var(--f-mono)}
+.appr{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:.74rem;color:var(--gate);background:var(--gate-bg);padding:5px 10px;border-radius:6px}
+.loop{font-size:.84rem;color:var(--muted);font-family:var(--f-mono)}
+.decnote{font-size:.84rem;color:var(--dec);display:flex;gap:8px;align-items:baseline}
+.decnote b{font-family:var(--f-mono);font-size:.7rem;font-weight:500;background:var(--dec-bg);padding:1px 6px;border-radius:4px;white-space:nowrap}
+
+/* ---------- decisions table ---------- */
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.92rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.k{font-family:var(--f-mono);color:var(--dec);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* ---------- toc ---------- */
+.toc{display:grid;gap:10px}
+.toc .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.toc .row > span{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:96px}
+.toc a{text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);padding:4px 10px;border-radius:7px;font-size:.86rem}
+.toc a:hover{border-color:var(--accent)}
+
+/* ---------- agent / part cards ---------- */
+.stage{display:grid;gap:16px}
+.stage-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;padding-top:10px}
+.stage-head h3{font-size:1.15rem;color:var(--muted);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:16px;min-width:0;scroll-margin-top:16px}
+.card-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.card-head h3{margin-right:4px;font-size:1.4rem}
+.role{font-size:1rem;max-width:72ch}
+.meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.meta > div{background:var(--sunk);border-radius:8px;padding:10px 12px;min-width:0}
+.meta .eyebrow{display:block;margin-bottom:3px}
+.meta p{font-size:.88rem}
+
+.flow{list-style:none;margin:0;padding:0;display:grid;gap:0;counter-reset:f}
+.flow > li{counter-increment:f;position:relative;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;padding-bottom:14px}
+.flow > li::before{content:counter(f);font-family:var(--f-mono);font-size:.74rem;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--sunk);color:var(--fg);z-index:1}
+.flow > li::after{content:"";position:absolute;left:12px;top:26px;bottom:0;width:2px;background:var(--line)}
+.flow > li:last-child{padding-bottom:0}
+.flow > li:last-child::after{display:none}
+.flow .t{font-size:.94rem;padding-top:2px;min-width:0}
+.flow .t em{font-style:normal;font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.flow li.q::before{background:var(--dec-bg);color:var(--dec);border-radius:5px;transform:rotate(45deg) scale(.86)}
+.flow li.q .t{font-weight:600}
+.flow .br{display:block;font-weight:400;font-size:.86rem;color:var(--muted);margin-top:2px}
+.flow .br b{color:var(--fg);font-weight:500}
+.flow li.h::before{background:var(--gate-bg);color:var(--gate)}
+.flow li.h .t{color:var(--gate);font-weight:500}
+
+.fails{font-size:.9rem;border-left:3px solid var(--gate);padding:3px 0 3px 12px}
+.fails b{color:var(--gate)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chips .eyebrow{margin-right:4px}
+.chip{font-size:.8rem;padding:3px 9px;border-radius:6px;border:1px solid var(--line);background:var(--bg)}
+
+/* ---------- learning ---------- */
+.learn-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.lg{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:10px;align-content:start;min-width:0}
+.lg h3{font-size:1.05rem}
+.lg.later{background:var(--sunk);border-style:dashed}
+
+@media (max-width:720px){
+  .meta{grid-template-columns:1fr 1fr}
+  .learn-grid{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .drow{grid-template-columns:1fr;gap:6px}
+  .dlabel{padding-top:0}
+  .meta{grid-template-columns:1fr}
+  .card{padding:16px}
+}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">AI-enabled SDLC · build plan</span>
+  <h1>Agent Delivery Flow</h1>
+  <p class="lead">The whole flow with every decision applied, then every agent and every platform part on its own: what it does, what it reads and writes, what it may touch, its step-by-step flow, and the topics behind it.</p>
+  <div class="legend">
+    <span><span class="pill o-agents">Agents</span> owner</span>
+    <span><span class="pill o-platform">Platform</span> owner</span>
+    <span><span class="pill o-product">Product</span> owner</span>
+    <span><span class="pill o-gate">⏸ Human</span> approval</span>
+    <span><span class="pill o-dec">D7</span> decision applied</span>
+  </div>
+</header>
+
+<!-- ================= OVERVIEW ================= -->
+<section id="flow">
+  <span class="eyebrow">The flow, with every decision applied</span>
+  <h2>From requirement to release</h2>
+  <div class="diagram">
+
+    <div class="drow"><div class="dlabel">Input</div><div class="dbody">
+      <div class="boxes"><span class="box wide"><strong>Customer repo + Jira ticket or requirement document</strong><small>Enterprise: platform runs in their own cloud · Agency: a copy hosted by you</small></span></div>
+      <p class="decnote"><b>D1 D2</b> Sold to enterprise IT and agencies; one Helm package for both</p>
+    </div></div>
+
+    <div class="drow"><div class="dlabel">0 · Ready?</div><div class="dbody">
+      <div class="boxes"><a class="box p" href="#p-ready"><strong>Readiness checker</strong><small>build · test · run · e2e commands</small></a><span class="arr">→</span><a class="box a" href="#a-setup"><strong>Setup agent</strong><small>only if gaps</small></a></div>
+      <p class="decnote"><b>D3 D4</b> Any stack through the readiness contract; React + Java Spring Boot and TypeScript full-stack are certified, others best-effort</p>
+    </div></div>
+
+    <div class="drow"><div class="dlabel">1 · Understand</div><div class="dbody">
+      <div class="boxes"><a class="box a" href="#a-req"><strong>Requirement agent</strong><small>clear requirement</small></a><span class="arr">→</span><a class="box a" href="#a-ba"><strong>BA agent</strong><small>stories + acceptance criteria</small></a><span class="arr">→</span><span class="appr">⏸ Requirement approval</span></div>
+      <p class="decnote"><b>D9</b> On by default; a project may turn it off</p>
+    </div></div>
+
+    <div class="drow"><div class="dlabel">2 · Design</div><div class="dbody">
+      <div class="boxes"><a class="box a" href="#a-arch"><strong>Architecture agent</strong><small>design + API contracts + ADRs</small></a><span class="arr">→</span><a class="box a" href="#a-plan"><strong>Planner agent</strong><small>story graph</small></a><span class="arr">→</span><span class="appr">⏸ Plan approval</span></div>
+      <p class="decnote"><b>D9</b> On by default; a project may turn it off</p>
+    </div></div>
+
+    <div class="drow"><div class="dlabel">3 · Run</div><div class="dbody">
+      <div class="boxes"><a class="box p wide" href="#p-orch"><strong>Orchestrator</strong><small>takes ready stories from the graph, runs them in parallel, retries, pauses for approvals, resumes after a crash</small></a></div>
+      <p class="decnote"><b>D7</b> Durable workflows on Postgres (DBOS); Temporal is the fallback</p>
+    </div></div>
+
+    <div class="drow"><div class="dlabel">4 · Build</div><div class="dbody">
+      <div class="boxes"><a class="box a" href="#a-be"><strong>Backend agent</strong></a><a class="box a" href="#a-fe"><strong>Frontend agent</strong></a><a class="box a" href="#a-infra"><strong>Infra + DB agent</strong></a><span class="loop">one story each, in parallel</span></div>
+      <p class="decnote"><b>D8</b> One Kubernetes pod per story; gVisor/Kata for enterprise; no internet, no secrets</p>
+      <p class="decnote"><b>D5</b> Claude Agent SDK behind one <code>runAgent()</code> interface; models via the customer's cloud</p>
+    </div></div>
+
+    <div class="drow"><div class="dlabel">5 · Check</div><div class="dbody">
+      <div class="boxes"><a class="box a" href="#a-qa"><strong>QA agent</strong></a><a class="box a" href="#a-sec"><strong>Security agent</strong></a><a class="box a" href="#a-rev"><strong>Code review agent</strong></a><span class="arr">→</span><span class="appr">⏸ Merge: always human</span></div>
+      <p class="loop">fail → back to the build agent · 3 tries → stronger model → human</p>
+      <p class="decnote"><b>D14</b> Semgrep, Trivy, Gitleaks reused; gates owned by Agents</p>
+    </div></div>
+
+    <div class="drow"><div class="dlabel">6 · Prove</div><div class="dbody">
+      <div class="boxes"><a class="box a" href="#a-jqa"><strong>Journey QA agent</strong><small>after each module: full app on a temporary environment</small></a><span class="loop">failures → new fix stories → back to 3</span></div>
+      <p class="decnote"><b>D12</b> Launch target: ≥ 95% of user journeys pass</p>
+    </div></div>
+
+    <div class="drow"><div class="dlabel">7 · Ship</div><div class="dbody">
+      <div class="boxes"><a class="box a" href="#a-rel"><strong>Release agent</strong></a><span class="arr">→</span><span class="appr">⏸ Release: always human</span><span class="arr">→</span><a class="box a" href="#a-docs"><strong>Docs agent</strong></a></div>
+      <p class="decnote"><b>D9</b> The customer's own CI/CD deploys; agents never hold production credentials</p>
+    </div></div>
+
+    <div class="drow"><div class="dlabel">Under all</div><div class="dbody">
+      <div class="boxes">
+        <a class="box p" href="#p-run"><strong>Runner + sandbox</strong></a>
+        <a class="box a" href="#p-know"><strong>Knowledge + memory</strong></a>
+        <a class="box p" href="#p-gw"><strong>Gateway + policy</strong></a>
+        <a class="box c" href="#p-obs"><strong>Traces + audit</strong></a>
+        <a class="box a" href="#p-eval"><strong>Evaluation</strong></a>
+        <a class="box c" href="#p-dash"><strong>Dashboard</strong></a>
+        <a class="box c" href="#p-inst"><strong>Install package</strong></a>
+      </div>
+      <p class="decnote"><b>D6</b> TypeScript for everything shipped; Python only for evaluation</p>
+      <p class="decnote"><b>D14</b> Reused: Langfuse, Keycloak, Playwright, Helm charts</p>
+    </div></div>
+
+  </div>
+</section>
+
+<!-- ================= DECISIONS ================= -->
+<section id="decisions">
+  <span class="eyebrow">Decisions applied</span>
+  <h2>What was decided</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>#</th><th>Decision</th><th>Chosen</th></tr></thead>
+    <tbody>
+      <tr><td class="k">D1</td><td>Customers</td><td>Enterprise IT teams and software agencies</td></tr>
+      <tr><td class="k">D2</td><td>Where it runs</td><td>One Helm package: customer's own cloud, or a copy per agency hosted by you</td></tr>
+      <tr><td class="k">D3</td><td>Stacks</td><td>Any stack, through the readiness contract</td></tr>
+      <tr><td class="k">D4</td><td>Quality per stack</td><td>2 certified (React + Java Spring Boot, TypeScript full-stack); others best-effort</td></tr>
+      <tr><td class="k">D5</td><td>Model + runtime</td><td>Claude Agent SDK behind a swappable interface; bake-off in week 1–2</td></tr>
+      <tr><td class="k">D6</td><td>Platform language</td><td>TypeScript shipped; Python for evaluation</td></tr>
+      <tr><td class="k">D7</td><td>Orchestrator</td><td>Durable workflows on Postgres (DBOS); Temporal fallback</td></tr>
+      <tr><td class="k">D8</td><td>Isolation</td><td>Kubernetes pod per story; gVisor/Kata switch for enterprise</td></tr>
+      <tr><td class="k">D9</td><td>Approvals</td><td>Requirement and plan can be turned off; merge and release always human</td></tr>
+      <tr><td class="k">D10</td><td>First sale</td><td>Full flow only</td></tr>
+      <tr><td class="k">D11</td><td>Real users before launch</td><td>1–2 design partners from about month 6, plus one Softude test project</td></tr>
+      <tr><td class="k">D12</td><td>Ready to sell</td><td>Measured targets: ≥ 60% stories merged unchanged, ≥ 85% with small fixes, 0 critical security issues, ≥ 95% journeys pass</td></tr>
+      <tr><td class="k">D13</td><td>Team</td><td>3 equal engineers; each owns an area (Agents, Platform, Product), work is shared</td></tr>
+      <tr><td class="k">D14</td><td>Build vs reuse</td><td>Build only the differentiators; reuse the rest</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= INDEX ================= -->
+<section id="index">
+  <span class="eyebrow">Jump to</span>
+  <div class="toc">
+    <div class="row"><span>Agents</span>
+      <a href="#a-setup">Setup</a><a href="#a-req">Requirement</a><a href="#a-ba">BA</a><a href="#a-arch">Architecture</a><a href="#a-plan">Planner</a><a href="#a-be">Backend</a><a href="#a-fe">Frontend</a><a href="#a-infra">Infra + DB</a><a href="#a-qa">QA</a><a href="#a-sec">Security</a><a href="#a-rev">Code review</a><a href="#a-jqa">Journey QA</a><a href="#a-rel">Release</a><a href="#a-docs">Docs</a>
+    </div>
+    <div class="row"><span>Platform</span>
+      <a href="#p-ready">Readiness checker</a><a href="#p-orch">Orchestrator</a><a href="#p-run">Runner + sandbox</a><a href="#p-know">Knowledge + memory</a><a href="#p-gw">Gateway + policy</a><a href="#p-obs">Traces + audit</a><a href="#p-eval">Evaluation</a><a href="#p-dash">Dashboard</a><a href="#p-inst">Install package</a>
+    </div>
+    <div class="row"><span>Topics</span><a href="#topics">All learning topics</a></div>
+  </div>
+</section>
+
+<!-- ================= AGENTS ================= -->
+<section id="agents">
+  <span class="eyebrow">Agents, one by one</span>
+  <h2>14 agents and what each one does</h2>
+  <p class="note">Every agent runs through the same runner and sandbox, sends every model and tool call through the gateway, and is traced. The cards below show only what is specific to each agent. A diamond step is a decision; a red step is a human approval.</p>
+
+  <!-- Stage 0 -->
+  <div class="stage">
+    <div class="stage-head"><span class="eyebrow">Stage 0</span><h3>Ready?</h3></div>
+
+    <article class="card" id="a-setup">
+      <div class="card-head"><h3>Setup agent</h3><span class="pill o-agents">Agents</span><span class="pill o-dec">D3</span></div>
+      <p class="role">Makes a customer repo ready for agents when the readiness checker finds gaps: adds missing build, test, run and e2e scripts and the readiness section in <code>AGENTS.md</code>.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Readiness report has gaps</p></div>
+        <div><span class="eyebrow">Reads</span><p>Readiness report, build files, existing CI config</p></div>
+        <div><span class="eyebrow">Writes</span><p>Pull request with scripts + readiness section</p></div>
+        <div><span class="eyebrow">May use</span><p>Read/write files in its pod, run commands, push its own branch</p></div>
+        <div><span class="eyebrow">Model</span><p>Default</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>Readiness checker (re-check)</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Read the gap list from the readiness report</span></li>
+        <li><span class="t">Detect the stack from build files <em>pom.xml · package.json · *.csproj</em></span></li>
+        <li><span class="t">Look at existing CI config to reuse the commands the team already runs</span></li>
+        <li><span class="t">Write the missing scripts and the readiness section</span></li>
+        <li><span class="t">Run each command in the pod</span></li>
+        <li class="q"><span class="t">All commands pass?<span class="br"><b>No:</b> fix and run again, up to 3 tries, then report to a human</span></span></li>
+        <li><span class="t">Open a pull request for the customer's team to approve</span></li>
+        <li><span class="t">Trigger the readiness checker again</span></li>
+      </ol>
+      <p class="fails"><b>If it fails:</b> the project stays blocked and the report lists what a human must add.</p>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Agent harness</span><span class="chip">Tool calling</span><span class="chip">Reproducible builds</span><span class="chip">CI/CD</span><span class="chip">Agent readiness</span></div>
+    </article>
+  </div>
+
+  <!-- Stage 1 -->
+  <div class="stage">
+    <div class="stage-head"><span class="eyebrow">Stage 1</span><h3>Understand</h3></div>
+
+    <article class="card" id="a-req">
+      <div class="card-head"><h3>Requirement agent</h3><span class="pill o-agents">Agents</span></div>
+      <p class="role">Turns rough input (a ticket, a document, meeting notes) into one clear, structured requirement, and asks humans about anything unclear instead of guessing.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>New ticket or document arrives, and readiness passed</p></div>
+        <div><span class="eyebrow">Reads</span><p>Ticket, attachments, existing features from the knowledge layer, project memory</p></div>
+        <div><span class="eyebrow">Writes</span><p>Requirement record: goal, users, scope in/out, non-functional needs, open questions</p></div>
+        <div><span class="eyebrow">May use</span><p>Knowledge search (read-only), Jira via MCP (read + comment). No code access.</p></div>
+        <div><span class="eyebrow">Model</span><p>Default</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>BA agent</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Receive the ticket event from the orchestrator</span></li>
+        <li><span class="t">Guardrail check: scan ticket text and attachments for injected instructions</span></li>
+        <li><span class="t">Search the knowledge layer for related features and past decisions</span></li>
+        <li><span class="t">Extract goal, users, in scope, out of scope</span></li>
+        <li><span class="t">List gaps and conflicts with existing behaviour</span></li>
+        <li class="q"><span class="t">Any blocking questions?<span class="br"><b>Yes:</b> post them on Jira and the dashboard, set state to <code>needs_input</code>, wait; resume when answered</span></span></li>
+        <li><span class="t">Add non-functional needs: performance, security, data rules</span></li>
+        <li class="q"><span class="t">Output valid against the requirement schema?<span class="br"><b>No:</b> regenerate with the validation errors, up to 2 times</span></span></li>
+        <li><span class="t">Save the requirement and hand off to the BA agent</span></li>
+      </ol>
+      <p class="fails"><b>If it fails:</b> the requirement stays in <code>needs_input</code>; it never moves forward on guesses.</p>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Context engineering</span><span class="chip">RAG</span><span class="chip">Structured output</span><span class="chip">Guardrails</span><span class="chip">Prompt injection protection</span><span class="chip">MCP</span><span class="chip">Human-in-the-loop</span></div>
+    </article>
+
+    <article class="card" id="a-ba">
+      <div class="card-head"><h3>BA agent</h3><span class="pill o-agents">Agents</span><span class="pill o-gate">⏸ Requirement approval</span><span class="pill o-dec">D9</span></div>
+      <p class="role">Writes the user stories and acceptance criteria, and lists the user journeys that will later be tested end to end. This defines "done" for everything that follows.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Requirement record is saved</p></div>
+        <div><span class="eyebrow">Reads</span><p>Requirement record, existing user journeys</p></div>
+        <div><span class="eyebrow">Writes</span><p>User stories, Given/When/Then criteria, user journeys, trace IDs</p></div>
+        <div><span class="eyebrow">May use</span><p>Knowledge search (read-only). No code access.</p></div>
+        <div><span class="eyebrow">Model</span><p>Default</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>Requirement approval, then Architecture agent</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Read the requirement</span></li>
+        <li><span class="t">Identify user roles and the journeys each role takes</span></li>
+        <li><span class="t">Write one user story per journey step <em>As a … I want … so that …</em></span></li>
+        <li><span class="t">Write acceptance criteria for each story <em>Given … When … Then …</em></span></li>
+        <li><span class="t">Give every requirement line and story a trace ID</span></li>
+        <li class="q"><span class="t">Every requirement line covered by a story?<span class="br"><b>No:</b> add the missing stories and check again</span></span></li>
+        <li><span class="t">Mark which journeys the Journey QA agent must test</span></li>
+        <li class="h"><span class="t">⏸ Requirement approval (requirement + stories together)</span></li>
+        <li><span class="t">Hand off to the Architecture agent</span></li>
+      </ol>
+      <p class="fails"><b>If it fails:</b> the reviewer's comments go back to this agent; it revises and asks again.</p>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Structured output</span><span class="chip">BDD (Given/When/Then)</span><span class="chip">Traceability</span><span class="chip">Context engineering</span><span class="chip">Human-in-the-loop</span></div>
+    </article>
+  </div>
+
+  <!-- Stage 2 -->
+  <div class="stage">
+    <div class="stage-head"><span class="eyebrow">Stage 2</span><h3>Design</h3></div>
+
+    <article class="card" id="a-arch">
+      <div class="card-head"><h3>Architecture agent</h3><span class="pill o-agents">Agents</span></div>
+      <p class="role">Decides where the change lives in the system and defines the contracts first (API, data model, events), so parallel build agents all build against the same agreement.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Requirement approved</p></div>
+        <div><span class="eyebrow">Reads</span><p>Stories, code map, existing ADRs and conventions, readiness report (stack)</p></div>
+        <div><span class="eyebrow">Writes</span><p>Design note, OpenAPI contracts, data model changes, new ADRs</p></div>
+        <div><span class="eyebrow">May use</span><p>Knowledge search, read repo; write only to a design branch</p></div>
+        <div><span class="eyebrow">Model</span><p>Stronger model (high-stakes step)</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>Planner agent</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Load the architecture map: modules, services, call graph</span></li>
+        <li><span class="t">Load existing ADRs and coding conventions</span></li>
+        <li><span class="t">Decide which modules or services change</span></li>
+        <li><span class="t">Design data model changes: tables, fields, indexes</span></li>
+        <li><span class="t">Write API contracts as OpenAPI, plus event formats if needed</span></li>
+        <li><span class="t">Check the design against non-functional needs: security, performance, data rules</span></li>
+        <li class="q"><span class="t">Conflicts with an existing ADR?<span class="br"><b>Yes:</b> write a new ADR proposal and flag it for the plan approval</span></span></li>
+        <li><span class="t">Write the design note and ADRs into project memory</span></li>
+        <li><span class="t">Hand off to the Planner agent</span></li>
+      </ol>
+      <p class="fails"><b>If it fails:</b> a contract that doesn't validate (bad OpenAPI) is regenerated; an unresolvable conflict goes to a human.</p>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Context engineering</span><span class="chip">RAG</span><span class="chip">Code indexing (AST, tree-sitter)</span><span class="chip">Contract-first design (OpenAPI)</span><span class="chip">ADR</span><span class="chip">Structured output</span><span class="chip">Multi agent system</span></div>
+    </article>
+
+    <article class="card" id="a-plan">
+      <div class="card-head"><h3>Planner agent</h3><span class="pill o-agents">Agents</span><span class="pill o-gate">⏸ Plan approval</span><span class="pill o-dec">D9</span></div>
+      <p class="role">Turns stories and design into a story graph: small technical stories in a safe order, each assigned to one build agent. This is what makes advanced projects possible.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Design note and contracts saved</p></div>
+        <div><span class="eyebrow">Reads</span><p>Stories, design note, contracts, past run history (size and cost)</p></div>
+        <div><span class="eyebrow">Writes</span><p>Story graph: stories, dependencies, size, agent type, contracts, trace IDs, cost estimate</p></div>
+        <div><span class="eyebrow">May use</span><p>Knowledge search (read-only)</p></div>
+        <div><span class="eyebrow">Model</span><p>Stronger model</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>Plan approval, then Orchestrator</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Turn each user story plus the design into technical stories</span></li>
+        <li><span class="t">Put contract stories first: API spec, database migration</span></li>
+        <li><span class="t">Estimate the size of each story</span></li>
+        <li class="q"><span class="t">Too big for one agent run?<span class="br"><b>Yes:</b> split it and estimate again</span></span></li>
+        <li><span class="t">Assign an agent type: backend, frontend, or infra + DB</span></li>
+        <li><span class="t">Set dependencies between stories</span></li>
+        <li class="q"><span class="t">Graph valid: no loops, every acceptance criterion covered?<span class="br"><b>No:</b> fix the graph and validate again</span></span></li>
+        <li><span class="t">Estimate total time and cost from past runs</span></li>
+        <li class="h"><span class="t">⏸ Plan approval</span></li>
+        <li><span class="t">Hand the graph to the orchestrator</span></li>
+      </ol>
+      <p class="fails"><b>If it fails:</b> validation errors are fixed before any human sees the plan; reviewer comments come back here.</p>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Task decomposition</span><span class="chip">DAG (dependency graph)</span><span class="chip">Topological sort</span><span class="chip">Structured output</span><span class="chip">Traceability</span><span class="chip">Human-in-the-loop</span></div>
+    </article>
+  </div>
+
+  <!-- Stage 4 -->
+  <div class="stage">
+    <div class="stage-head"><span class="eyebrow">Stage 4</span><h3>Build</h3><span class="pill o-dec">D5 D8</span></div>
+
+    <article class="card" id="a-be">
+      <div class="card-head"><h3>Backend agent</h3><span class="pill o-agents">Agents</span></div>
+      <p class="role">Implements one backend story (API endpoints, business logic, data access) with tests, inside its own sandbox pod, and opens a pull request.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Orchestrator starts a ready backend story</p></div>
+        <div><span class="eyebrow">Reads</span><p>Story, OpenAPI contract, relevant code, project memory, readiness commands</p></div>
+        <div><span class="eyebrow">Writes</span><p>Commits on its branch, tests, pull request, memory notes</p></div>
+        <div><span class="eyebrow">May use</span><p>Files and commands inside its pod only; no internet except package registries; push via a scoped token held outside the pod</p></div>
+        <div><span class="eyebrow">Model</span><p>Default; stronger model after 3 failed tries</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>QA, Security and Code review agents</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Pod starts with the repo at main and a new story branch</span></li>
+        <li><span class="t">Load the story, contract and project memory</span></li>
+        <li><span class="t">Search the knowledge layer for the files that matter, using an explorer sub-agent</span></li>
+        <li><span class="t">Write a short plan of the change</span></li>
+        <li><span class="t">Write failing tests from the acceptance criteria</span></li>
+        <li><span class="t">Implement the code</span></li>
+        <li><span class="t">Run build and tests with the readiness commands</span></li>
+        <li class="q"><span class="t">All green?<span class="br"><b>No:</b> read the errors, fix, go back to step 7, up to 10 rounds</span></span></li>
+        <li class="q"><span class="t">Matches the OpenAPI contract and every acceptance criterion?<span class="br"><b>No:</b> fix and go back to step 7</span></span></li>
+        <li><span class="t">Commit, push, open the pull request with a structured description</span></li>
+        <li><span class="t">Write decisions and learnings to project memory</span></li>
+        <li><span class="t">Pod is deleted</span></li>
+      </ol>
+      <p class="fails"><b>If it fails:</b> it ends with a report of what it tried; the orchestrator retries, switches model, or escalates.</p>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Agent harness</span><span class="chip">Tool calling</span><span class="chip">Context engineering</span><span class="chip">RAG</span><span class="chip">Sub-agents</span><span class="chip">TDD</span><span class="chip">Cloud agent</span><span class="chip">Kubernetes pod</span><span class="chip">Network policy</span><span class="chip">Prompt injection protection</span><span class="chip">Agent tracing</span></div>
+    </article>
+
+    <article class="card" id="a-fe">
+      <div class="card-head"><h3>Frontend agent</h3><span class="pill o-agents">Agents</span></div>
+      <p class="role">Implements one frontend story (screens, components, API calls) with tests, and attaches screenshots of what it built so reviewers can see it.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Orchestrator starts a ready frontend story</p></div>
+        <div><span class="eyebrow">Reads</span><p>Story, OpenAPI contract, UI conventions, existing components, project memory</p></div>
+        <div><span class="eyebrow">Writes</span><p>Commits, component tests, screenshots, pull request</p></div>
+        <div><span class="eyebrow">May use</span><p>Same pod rules as the Backend agent, plus a headless browser inside the pod</p></div>
+        <div><span class="eyebrow">Model</span><p>Default; stronger model after 3 failed tries</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>QA, Security and Code review agents</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Pod starts with the repo and a new story branch</span></li>
+        <li><span class="t">Load the story, API contract, UI conventions and memory</span></li>
+        <li><span class="t">Find existing components to reuse</span></li>
+        <li><span class="t">Generate or refresh the typed API client from the OpenAPI contract</span></li>
+        <li><span class="t">Write component tests from the acceptance criteria</span></li>
+        <li><span class="t">Build the screens and components</span></li>
+        <li><span class="t">Run lint, type check and tests</span></li>
+        <li class="q"><span class="t">All green?<span class="br"><b>No:</b> fix and go back to step 7, up to 10 rounds</span></span></li>
+        <li><span class="t">Start the app in the pod and screenshot the changed screens</span></li>
+        <li><span class="t">Run an accessibility check on those screens</span></li>
+        <li><span class="t">Commit, push, open the pull request with screenshots</span></li>
+        <li><span class="t">Write memory notes; pod is deleted</span></li>
+      </ol>
+      <p class="fails"><b>If it fails:</b> same as Backend: report, then retry, model switch, or escalation.</p>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Agent harness</span><span class="chip">Context engineering</span><span class="chip">Contract-first design (OpenAPI)</span><span class="chip">TDD</span><span class="chip">Playwright</span><span class="chip">Accessibility</span><span class="chip">Kubernetes pod</span></div>
+    </article>
+
+    <article class="card" id="a-infra">
+      <div class="card-head"><h3>Infra + DB agent</h3><span class="pill o-agents">Agents</span></div>
+      <p class="role">Handles database migrations, configuration, Dockerfiles and pipeline files for the customer's app. It never applies anything to a real environment, and risky changes always go to a human.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Orchestrator starts a ready infra or database story</p></div>
+        <div><span class="eyebrow">Reads</span><p>Story, data model design, existing migrations and infra files</p></div>
+        <div><span class="eyebrow">Writes</span><p>Migration (forward + rollback), infra files, pull request with a migration plan</p></div>
+        <div><span class="eyebrow">May use</span><p>Pod with a throwaway database; validation tools only (plan, lint), never apply</p></div>
+        <div><span class="eyebrow">Model</span><p>Default; stronger model after 3 failed tries</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>QA, Security and Code review agents</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Pod starts with the repo and a throwaway database</span></li>
+        <li><span class="t">Load the story and the data model design</span></li>
+        <li><span class="t">Write the forward migration and its rollback</span></li>
+        <li><span class="t">Run forward, then rollback, then forward again on the throwaway database</span></li>
+        <li class="q"><span class="t">Can this lose or lock data?<span class="br"><b>Yes:</b> mark the pull request "human review required" with the reason</span></span></li>
+        <li><span class="t">Update infra files: config, Dockerfile, pipeline</span></li>
+        <li><span class="t">Validate without applying <em>terraform plan · helm lint · docker build</em></span></li>
+        <li><span class="t">Open the pull request with the migration plan; pod is deleted</span></li>
+      </ol>
+      <p class="fails"><b>If it fails:</b> a failed rollback test blocks the story; it never reaches the gates.</p>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Safe database migrations</span><span class="chip">Infrastructure as code</span><span class="chip">Ephemeral environments</span><span class="chip">Least privilege</span><span class="chip">Human-in-the-loop</span></div>
+    </article>
+  </div>
+
+  <!-- Stage 5 -->
+  <div class="stage">
+    <div class="stage-head"><span class="eyebrow">Stage 5</span><h3>Check</h3><span class="pill o-gate">⏸ Merge: always human</span><span class="pill o-dec">D9 D14</span></div>
+    <p class="note">These three agents run at the same time on every pull request. The orchestrator combines their reports: all pass → merge approval; any blocking finding → feedback to the build agent (one retry used).</p>
+
+    <article class="card" id="a-qa">
+      <div class="card-head"><h3>QA agent</h3><span class="pill o-agents">Agents</span></div>
+      <p class="role">Checks that every acceptance criterion has a real test, that all tests pass in a clean environment, and that nothing else broke.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Pull request opened or updated</p></div>
+        <div><span class="eyebrow">Reads</span><p>Diff, story, acceptance criteria, test results</p></div>
+        <div><span class="eyebrow">Writes</span><p>QA report: criteria → tests, missing tests, results, coverage change</p></div>
+        <div><span class="eyebrow">May use</span><p>Read repo, run tests in a fresh pod, comment on the pull request</p></div>
+        <div><span class="eyebrow">Model</span><p>Default</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>Orchestrator (gate result)</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Map each acceptance criterion to the tests in the pull request</span></li>
+        <li class="q"><span class="t">Any criterion without a test?<span class="br"><b>Yes:</b> blocking finding</span></span></li>
+        <li><span class="t">Judge whether each test really checks its criterion, not just runs</span></li>
+        <li><span class="t">Run the full test suite in a fresh pod</span></li>
+        <li class="q"><span class="t">Any failure?<span class="br"><b>Yes:</b> re-run once; fails twice = real failure, passes = mark as flaky</span></span></li>
+        <li><span class="t">Compare coverage with main</span></li>
+        <li><span class="t">Write the structured QA report and post a summary comment</span></li>
+      </ol>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Test coverage</span><span class="chip">Flaky tests</span><span class="chip">Traceability</span><span class="chip">Structured output</span><span class="chip">LLM-as-judge</span></div>
+    </article>
+
+    <article class="card" id="a-sec">
+      <div class="card-head"><h3>Security agent</h3><span class="pill o-agents">Agents</span></div>
+      <p class="role">Runs the security scanners, separates real problems from false alarms, and reviews access and permission logic. Critical findings block the merge, and no agent can override them.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Pull request opened or updated</p></div>
+        <div><span class="eyebrow">Reads</span><p>Diff, scanner results, requirement's security needs</p></div>
+        <div><span class="eyebrow">Writes</span><p>Security report: findings, real or false alarm, severity, fix hints</p></div>
+        <div><span class="eyebrow">May use</span><p>Read repo, run scanners in a pod, comment on the pull request</p></div>
+        <div><span class="eyebrow">Model</span><p>Default</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>Orchestrator (gate result)</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Run Semgrep (code), Trivy (dependencies) and Gitleaks (secrets)</span></li>
+        <li><span class="t">Collect all findings in one list</span></li>
+        <li><span class="t">For each finding, decide real or false alarm, with a written reason</span></li>
+        <li><span class="t">Review authentication and permission logic in the diff <em>who can see or change what</em></span></li>
+        <li><span class="t">Check against the requirement's security needs and common web risks</span></li>
+        <li><span class="t">Set severity for each real finding</span></li>
+        <li class="q"><span class="t">Any critical finding?<span class="br"><b>Yes:</b> block the merge; only a human can clear it</span></span></li>
+        <li><span class="t">Write the security report with a fix hint per finding</span></li>
+      </ol>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">SAST</span><span class="chip">SCA</span><span class="chip">Secret scanning</span><span class="chip">OWASP Top 10</span><span class="chip">Threat modeling</span><span class="chip">Guardrails</span><span class="chip">Prompt injection protection</span></div>
+    </article>
+
+    <article class="card" id="a-rev">
+      <div class="card-head"><h3>Code review agent</h3><span class="pill o-agents">Agents</span></div>
+      <p class="role">Reviews the change like a senior engineer: does it do what the story asks, does it follow the design and conventions, and is it readable? It also writes the summary the human sees before approving the merge.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Pull request opened or updated</p></div>
+        <div><span class="eyebrow">Reads</span><p>Diff, story, design note, ADRs, conventions</p></div>
+        <div><span class="eyebrow">Writes</span><p>Inline comments (blocking or suggestion), merge summary</p></div>
+        <div><span class="eyebrow">May use</span><p>Read repo, knowledge search, comment on the pull request (GitHub via MCP)</p></div>
+        <div><span class="eyebrow">Model</span><p>Stronger model</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>Orchestrator → human merge approval</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Read the diff with the story, design note and related ADRs</span></li>
+        <li><span class="t">Check correctness against each acceptance criterion</span></li>
+        <li><span class="t">Check that the code matches the API contract</span></li>
+        <li><span class="t">Check design and conventions against the ADRs</span></li>
+        <li><span class="t">Check readability, duplication and error handling</span></li>
+        <li><span class="t">Label each comment blocking or suggestion</span></li>
+        <li><span class="t">Post inline comments</span></li>
+        <li class="q"><span class="t">QA, Security and Review all pass?<span class="br"><b>No:</b> orchestrator sends all blocking findings to the build agent</span></span></li>
+        <li class="h"><span class="t">⏸ Merge approval, with a one-screen summary of the change and all three reports</span></li>
+      </ol>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">LLM-as-judge</span><span class="chip">Context engineering</span><span class="chip">RAG</span><span class="chip">Structured output</span><span class="chip">Multi agent system</span><span class="chip">MCP</span></div>
+    </article>
+  </div>
+
+  <!-- Stage 6 -->
+  <div class="stage">
+    <div class="stage-head"><span class="eyebrow">Stage 6</span><h3>Prove</h3><span class="pill o-dec">D12</span></div>
+
+    <article class="card" id="a-jqa">
+      <div class="card-head"><h3>Journey QA agent</h3><span class="pill o-agents">Agents</span><span class="pill o-platform">environment: Platform</span></div>
+      <p class="role">After each module is finished, runs the whole application and tests it the way real users would. Pull requests can each pass and still not work together; this agent catches that.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>The last story of a module is merged</p></div>
+        <div><span class="eyebrow">Reads</span><p>User journeys from the BA agent, main branch, test data</p></div>
+        <div><span class="eyebrow">Writes</span><p>Verification report: pass rate, recordings, screenshots; fix stories</p></div>
+        <div><span class="eyebrow">May use</span><p>Temporary environment, Playwright, app logs; add stories to the graph</p></div>
+        <div><span class="eyebrow">Model</span><p>Default</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>Orchestrator (fix stories) or Release agent</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Ask the platform for a temporary environment: full app plus seeded test data</span></li>
+        <li><span class="t">Load the module's user journeys</span></li>
+        <li><span class="t">Write or update Playwright journey tests</span></li>
+        <li><span class="t">Run all journeys and record each one</span></li>
+        <li class="q"><span class="t">Any journey failed?<span class="br"><b>Yes:</b> re-run once to rule out a flaky test</span></span></li>
+        <li class="q"><span class="t">Still failing: is the test wrong or the app wrong?<span class="br"><b>Test:</b> fix the test · <b>App:</b> create a fix story in the graph, linked to the journey</span></span></li>
+        <li><span class="t">Publish the report: pass rate, recordings, screenshots</span></li>
+        <li><span class="t">Delete the temporary environment</span></li>
+        <li class="q"><span class="t">Pass rate ≥ 95%?<span class="br"><b>Yes:</b> module done, milestone demo · <b>No:</b> module stays open until fixes land</span></span></li>
+      </ol>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">End-to-end testing</span><span class="chip">Playwright</span><span class="chip">Ephemeral environments</span><span class="chip">Test data seeding</span><span class="chip">Flaky tests</span><span class="chip">Agent tracing</span><span class="chip">Multi agent system</span></div>
+    </article>
+  </div>
+
+  <!-- Stage 7 -->
+  <div class="stage">
+    <div class="stage-head"><span class="eyebrow">Stage 7</span><h3>Ship</h3><span class="pill o-gate">⏸ Release: always human</span><span class="pill o-dec">D9</span></div>
+
+    <article class="card" id="a-rel">
+      <div class="card-head"><h3>Release agent</h3><span class="pill o-agents">Agents</span></div>
+      <p class="role">Checks that everything is ready, writes the release notes, and asks a human to approve. The customer's own pipeline deploys; the agent never holds production credentials.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>Modules for a release are verified, or a human asks for a release</p></div>
+        <div><span class="eyebrow">Reads</span><p>Merged stories, gate and verification reports, migration plans</p></div>
+        <div><span class="eyebrow">Writes</span><p>Release checklist, release notes, release record</p></div>
+        <div><span class="eyebrow">May use</span><p>Trigger the customer's CI/CD pipeline, read health checks</p></div>
+        <div><span class="eyebrow">Model</span><p>Default</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>Docs agent</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Collect all stories merged since the last release</span></li>
+        <li><span class="t">Run release checks: gates green, journeys ≥ 95%, migrations reviewed, rollback plan present</span></li>
+        <li class="q"><span class="t">Any check failing?<span class="br"><b>Yes:</b> stop and report what is missing</span></span></li>
+        <li><span class="t">Write release notes, linked back to the requirements</span></li>
+        <li class="h"><span class="t">⏸ Release approval</span></li>
+        <li><span class="t">Trigger the customer's deploy pipeline</span></li>
+        <li><span class="t">Watch health checks after deploy</span></li>
+        <li class="q"><span class="t">Healthy?<span class="br"><b>No:</b> alert a human and recommend running the rollback pipeline</span></span></li>
+        <li><span class="t">Mark the release done and hand off to the Docs agent</span></li>
+      </ol>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">CI/CD</span><span class="chip">Release gates</span><span class="chip">Feature flags</span><span class="chip">Rollback</span><span class="chip">Health checks</span><span class="chip">MCP</span><span class="chip">Human-in-the-loop</span></div>
+    </article>
+
+    <article class="card" id="a-docs">
+      <div class="card-head"><h3>Docs agent</h3><span class="pill o-agents">Agents</span></div>
+      <p class="role">Keeps documentation and project knowledge current, so humans and future agent runs always read the latest truth.</p>
+      <div class="meta">
+        <div><span class="eyebrow">Runs when</span><p>After each release; memory updates after each merge</p></div>
+        <div><span class="eyebrow">Reads</span><p>Changes since the last docs update, contracts, ADRs</p></div>
+        <div><span class="eyebrow">Writes</span><p>Docs pull request, updated project memory</p></div>
+        <div><span class="eyebrow">May use</span><p>Read repo, write docs branch, update the knowledge layer</p></div>
+        <div><span class="eyebrow">Model</span><p>Default</p></div>
+        <div><span class="eyebrow">Hands off to</span><p>Knowledge layer (re-index)</p></div>
+      </div>
+      <ol class="flow">
+        <li><span class="t">Read everything that changed since the last docs update</span></li>
+        <li><span class="t">Regenerate API docs from the OpenAPI contracts</span></li>
+        <li><span class="t">Update README and user-facing docs</span></li>
+        <li><span class="t">Update the ADR index and project memory summary</span></li>
+        <li><span class="t">Trigger a re-index of the knowledge layer</span></li>
+        <li><span class="t">Open a docs pull request (human merge, light review)</span></li>
+      </ol>
+      <div class="chips"><span class="eyebrow">Topics</span><span class="chip">RAG</span><span class="chip">Structured output</span><span class="chip">ADR</span><span class="chip">Context engineering</span></div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= PLATFORM ================= -->
+<section id="platform">
+  <span class="eyebrow">Platform parts, one by one</span>
+  <h2>9 parts the agents run on</h2>
+  <p class="note">These are not agents. They are the software the three of you build (or wire in) so the agents can run safely, for weeks, inside a customer's cloud.</p>
+
+  <article class="card" id="p-ready">
+    <div class="card-head"><h3>Readiness checker</h3><span class="pill o-platform">Platform</span><span class="pill o-dec">D3 D4</span></div>
+    <p class="role">Confirms a machine can build, test and run the customer's repo without a human, before any agent starts.</p>
+    <ol class="flow">
+      <li><span class="t">Clone the repo into a fresh pod</span></li>
+      <li><span class="t">Read the readiness section <em>build · test · run · e2e · lint</em></span></li>
+      <li><span class="t">Run each command with time and memory limits; record result and duration</span></li>
+      <li><span class="t">Detect the stack</span></li>
+      <li class="q"><span class="t">Certified stack?<span class="br"><b>Yes:</b> mark certified · <b>No:</b> mark best-effort</span></span></li>
+      <li><span class="t">Write the readiness report to the dashboard</span></li>
+      <li class="q"><span class="t">Any gaps?<span class="br"><b>Yes:</b> start the Setup agent, then check again · <b>No:</b> project is ready</span></span></li>
+    </ol>
+    <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Agent readiness</span><span class="chip">Reproducible builds</span><span class="chip">Kubernetes pod</span></div>
+  </article>
+
+  <article class="card" id="p-orch">
+    <div class="card-head"><h3>Orchestrator</h3><span class="pill o-platform">Platform</span><span class="pill o-dec">D7 D9</span></div>
+    <p class="role">Runs the story graph for days or weeks and never loses its place. Every step is saved in Postgres, so after a crash it continues from the last finished step.</p>
+    <ol class="flow">
+      <li><span class="t">Receive the approved story graph and the project's approval policy</span></li>
+      <li><span class="t">Find ready stories: all their dependencies merged</span></li>
+      <li><span class="t">Start up to N stories at once, within budget</span></li>
+      <li><span class="t">For each story: create the branch, call the runner with the right build agent</span></li>
+      <li><span class="t">Wait for the pull request and the three gate reports (GitHub webhooks)</span></li>
+      <li class="q"><span class="t">Gates pass?<span class="br"><b>No:</b> send findings back · try 4 → stronger model · after that → human</span></span></li>
+      <li class="h"><span class="t">⏸ Sleep until merge approval arrives from the dashboard</span></li>
+      <li class="q"><span class="t">Last story of a module merged?<span class="br"><b>Yes:</b> start the Journey QA agent; fix stories it creates go back to step 2</span></span></li>
+      <li class="q"><span class="t">All modules verified?<span class="br"><b>Yes:</b> start the Release agent</span></span></li>
+    </ol>
+    <p class="note"><code>queued → running → in_gates → changes_needed ↺ → awaiting_merge → merged</code> · or <code>escalated</code> / <code>failed</code></p>
+    <p class="fails"><b>Must pass:</b> a 2-week test run with a forced crash in the middle. If DBOS loses work, switch to Temporal.</p>
+    <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Durable execution</span><span class="chip">DBOS</span><span class="chip">Temporal</span><span class="chip">State machine</span><span class="chip">Idempotency</span><span class="chip">Retries with backoff</span><span class="chip">Webhooks</span><span class="chip">Multi agent system</span></div>
+  </article>
+
+  <article class="card" id="p-run">
+    <div class="card-head"><h3>Runner + sandbox</h3><span class="pill o-platform">Platform</span><span class="pill o-dec">D5 D8</span></div>
+    <p class="role">Starts any agent safely. Everything goes through one function, <code>runAgent(agent, task)</code>, so the agent SDK or model can be swapped later without touching the rest.</p>
+    <ol class="flow">
+      <li><span class="t">Receive <code>runAgent(agent, task)</code> from the orchestrator</span></li>
+      <li><span class="t">Load the agent definition: instructions, tools, MCP servers, model</span></li>
+      <li><span class="t">Create a Kubernetes pod with CPU, memory and time limits</span></li>
+      <li class="q"><span class="t">Enterprise isolation switched on?<span class="br"><b>Yes:</b> run the pod under gVisor or Kata</span></span></li>
+      <li><span class="t">Apply the network policy: package registries and model endpoint only</span></li>
+      <li><span class="t">Start the Claude Agent SDK with the definition; model calls go through the gateway</span></li>
+      <li><span class="t">Stream every step to tracing</span></li>
+      <li><span class="t">Collect the result; push the branch with a scoped token held outside the pod</span></li>
+      <li><span class="t">Delete the pod and return the result</span></li>
+    </ol>
+    <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Agent harness</span><span class="chip">Claude Agent SDK</span><span class="chip">Hooks and permissions</span><span class="chip">Cloud agent</span><span class="chip">Kubernetes</span><span class="chip">gVisor / Kata</span><span class="chip">Network policy</span><span class="chip">Adapter pattern</span></div>
+  </article>
+
+  <article class="card" id="p-know">
+    <div class="card-head"><h3>Knowledge layer + project memory</h3><span class="pill o-agents">Agents</span></div>
+    <p class="role">Lets agents find the right code in a big repo without reading all of it, and remember decisions across weeks. This is what keeps story 200 as correct as story 1.</p>
+    <ol class="flow">
+      <li><span class="t">On every merge, receive the list of changed files</span></li>
+      <li><span class="t">Parse them with tree-sitter: files, classes, functions, who calls what</span></li>
+      <li><span class="t">Update the code map and call graph</span></li>
+      <li><span class="t">Split code into chunks and create embeddings</span></li>
+      <li><span class="t">Store embeddings in Postgres (pgvector), so no extra database is needed</span></li>
+      <li><span class="t">Store project memory: decisions, conventions, progress, ADRs</span></li>
+      <li><span class="t">Serve one search API to agents: keyword + meaning + call graph</span></li>
+    </ol>
+    <div class="chips"><span class="eyebrow">Topics</span><span class="chip">RAG</span><span class="chip">Code indexing (AST, tree-sitter)</span><span class="chip">Embeddings</span><span class="chip">Vector search (pgvector)</span><span class="chip">Hybrid search</span><span class="chip">Context engineering</span><span class="chip">Agent memory</span></div>
+  </article>
+
+  <article class="card" id="p-gw">
+    <div class="card-head"><h3>Gateway + policy</h3><span class="pill o-platform">Platform</span><span class="pill o-product">Product</span><span class="pill o-dec">D5 D9</span></div>
+    <p class="role">The single checkpoint for every model call and tool call: is it allowed, is it within budget, and is it recorded?</p>
+    <ol class="flow">
+      <li><span class="t">Receive a model or tool call, tagged with agent, story and project</span></li>
+      <li class="q"><span class="t">Tool allowed for this agent?<span class="br"><b>No:</b> block and log</span></span></li>
+      <li class="q"><span class="t">Budget left for this story and project?<span class="br"><b>No:</b> pause the story and alert a human</span></span></li>
+      <li><span class="t">Input guardrail: check for injected instructions</span></li>
+      <li><span class="t">Choose the model: default, or stronger if escalated</span></li>
+      <li><span class="t">Send to the customer's cloud model endpoint <em>Bedrock · Vertex · Foundry</em></span></li>
+      <li><span class="t">Output guardrail; record tokens, cost and time</span></li>
+      <li><span class="t">Return the result</span></li>
+    </ol>
+    <div class="chips"><span class="eyebrow">Topics</span><span class="chip">LLM gateway</span><span class="chip">Model routing</span><span class="chip">Guardrails</span><span class="chip">Prompt injection protection</span><span class="chip">RBAC</span><span class="chip">Rate limits and budgets</span></div>
+  </article>
+
+  <article class="card" id="p-obs">
+    <div class="card-head"><h3>Traces + audit</h3><span class="pill o-product">Product</span><span class="pill o-dec">D14</span></div>
+    <p class="role">Shows what every agent did, what it cost and where it failed; keeps a tamper-proof record of every human approval.</p>
+    <ol class="flow">
+      <li><span class="t">Every agent run becomes a trace in Langfuse: steps, tool calls, tokens, time</span></li>
+      <li><span class="t">Link each trace to its story, project and pull request</span></li>
+      <li><span class="t">Roll up cost and time per story, module and project</span></li>
+      <li><span class="t">Alert on failures, loops and cost spikes</span></li>
+      <li><span class="t">Write every approval to an append-only audit log: who, when, what they saw</span></li>
+    </ol>
+    <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Agent tracing</span><span class="chip">LLM observability</span><span class="chip">OpenTelemetry</span><span class="chip">Langfuse</span><span class="chip">Audit logs</span></div>
+  </article>
+
+  <article class="card" id="p-eval">
+    <div class="card-head"><h3>Evaluation</h3><span class="pill o-agents">Agents</span><span class="pill o-dec">D4 D6 D12</span></div>
+    <p class="role">Measures whether the agents are actually good, every week and before any change to a prompt or model. Written in Python.</p>
+    <ol class="flow">
+      <li><span class="t">Keep a fixed set of real tasks for each certified stack</span></li>
+      <li><span class="t">Run every task through the full flow in sandboxes</span></li>
+      <li><span class="t">Score each run: tests pass, gates pass, LLM judge, human-change rate</span></li>
+      <li><span class="t">Compare with the previous agent version</span></li>
+      <li class="q"><span class="t">Worse than before?<span class="br"><b>Yes:</b> the prompt or model change is not released</span></span></li>
+      <li><span class="t">Publish the weekly numbers against the launch targets</span></li>
+    </ol>
+    <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Evaluation</span><span class="chip">LLM-as-judge</span><span class="chip">Eval datasets</span><span class="chip">Regression testing</span><span class="chip">pass@k</span></div>
+  </article>
+
+  <article class="card" id="p-dash">
+    <div class="card-head"><h3>Dashboard</h3><span class="pill o-product">Product</span><span class="pill o-dec">D9</span></div>
+    <p class="role">Where people see the work, approve steps and set the rules.</p>
+    <ol class="flow">
+      <li><span class="t">Login through the company's single sign-on (Keycloak)</span></li>
+      <li><span class="t">Projects list with readiness status</span></li>
+      <li><span class="t">Live runs: story graph, states, traces</span></li>
+      <li><span class="t">Approvals inbox: requirement, plan, merge, release</span></li>
+      <li><span class="t">Reports: gates, verification, releases</span></li>
+      <li><span class="t">Policy settings: which approvals are on, who approves, budgets</span></li>
+      <li><span class="t">Cost and quality numbers</span></li>
+    </ol>
+    <div class="chips"><span class="eyebrow">Topics</span><span class="chip">React</span><span class="chip">Real-time updates</span><span class="chip">API design</span><span class="chip">OIDC / SAML</span><span class="chip">RBAC</span></div>
+  </article>
+
+  <article class="card" id="p-inst">
+    <div class="card-head"><h3>Install package</h3><span class="pill o-product">Product</span><span class="pill o-dec">D2 D14</span></div>
+    <p class="role">One Helm chart that installs everything in a customer's cloud, or as a copy you host for an agency.</p>
+    <ol class="flow">
+      <li><span class="t">Customer runs the Helm install in their Kubernetes cluster</span></li>
+      <li><span class="t">Chart installs platform services, Postgres, Keycloak and Langfuse</span></li>
+      <li><span class="t">Customer sets the model provider: Bedrock, Vertex or Foundry</span></li>
+      <li><span class="t">Customer connects GitHub and Jira, and their SSO</span></li>
+      <li><span class="t">Customer chooses the isolation setting and default approval policy</span></li>
+      <li><span class="t">Built-in self-test runs the flow on a sample repo</span></li>
+    </ol>
+    <div class="chips"><span class="eyebrow">Topics</span><span class="chip">Kubernetes</span><span class="chip">Helm</span><span class="chip">Keycloak</span><span class="chip">Secrets management</span><span class="chip">Multi-tenancy</span></div>
+  </article>
+</section>
+
+<!-- ================= TOPICS ================= -->
+<section id="topics">
+  <span class="eyebrow">Learning topics</span>
+  <h2>All topics, by group</h2>
+  <div class="learn-grid">
+    <div class="lg"><h3>Building agents</h3><div class="chips">
+      <span class="chip">Agent harness</span><span class="chip">Context engineering</span><span class="chip">RAG</span><span class="chip">Structured output</span><span class="chip">Multi agent system</span><span class="chip">Cloud agent</span><span class="chip">Tool calling</span><span class="chip">Sub-agents</span><span class="chip">Agent memory</span><span class="chip">Human-in-the-loop</span>
+    </div></div>
+    <div class="lg"><h3>Protocols and frameworks</h3><div class="chips">
+      <span class="chip">MCP</span><span class="chip">Claude Agent SDK</span><span class="chip">Hooks and permissions</span><span class="chip">DBOS</span><span class="chip">Temporal</span>
+    </div></div>
+    <div class="lg"><h3>Production infrastructure</h3><div class="chips">
+      <span class="chip">LLM gateway</span><span class="chip">Model routing</span><span class="chip">Agent tracing</span><span class="chip">LLM observability</span><span class="chip">OpenTelemetry</span><span class="chip">Langfuse</span><span class="chip">Evaluation</span><span class="chip">LLM-as-judge</span><span class="chip">Eval datasets</span>
+    </div></div>
+    <div class="lg"><h3>Safety</h3><div class="chips">
+      <span class="chip">Guardrails</span><span class="chip">Prompt injection protection</span><span class="chip">Least privilege</span><span class="chip">RBAC</span><span class="chip">Network policy</span><span class="chip">gVisor / Kata</span><span class="chip">Secrets management</span><span class="chip">Audit logs</span>
+    </div></div>
+    <div class="lg"><h3>Code and knowledge</h3><div class="chips">
+      <span class="chip">Code indexing (AST, tree-sitter)</span><span class="chip">Embeddings</span><span class="chip">Vector search (pgvector)</span><span class="chip">Hybrid search</span><span class="chip">ADR</span><span class="chip">Traceability</span>
+    </div></div>
+    <div class="lg"><h3>Planning and orchestration</h3><div class="chips">
+      <span class="chip">Task decomposition</span><span class="chip">DAG</span><span class="chip">Topological sort</span><span class="chip">Durable execution</span><span class="chip">State machine</span><span class="chip">Idempotency</span><span class="chip">Retries with backoff</span><span class="chip">Webhooks</span>
+    </div></div>
+    <div class="lg"><h3>Testing and quality</h3><div class="chips">
+      <span class="chip">BDD (Given/When/Then)</span><span class="chip">TDD</span><span class="chip">Contract-first design (OpenAPI)</span><span class="chip">End-to-end testing</span><span class="chip">Playwright</span><span class="chip">Flaky tests</span><span class="chip">Test coverage</span><span class="chip">SAST</span><span class="chip">SCA</span><span class="chip">Secret scanning</span><span class="chip">OWASP Top 10</span><span class="chip">Threat modeling</span>
+    </div></div>
+    <div class="lg"><h3>Delivery and infrastructure</h3><div class="chips">
+      <span class="chip">Kubernetes</span><span class="chip">Helm</span><span class="chip">Ephemeral environments</span><span class="chip">CI/CD</span><span class="chip">Safe database migrations</span><span class="chip">Infrastructure as code</span><span class="chip">Feature flags</span><span class="chip">Rollback</span><span class="chip">Keycloak (OIDC / SAML)</span>
+    </div></div>
+    <div class="lg later"><h3>Later or light reading</h3><div class="chips">
+      <span class="chip">Transformer architecture</span><span class="chip">Fine tuning</span><span class="chip">Quantization</span><span class="chip">Distillation</span><span class="chip">Semantic caching</span><span class="chip">A2A</span><span class="chip">Google ADK</span><span class="chip">Amazon Bedrock Agents</span><span class="chip">Vertex AI Agent Builder</span><span class="chip">Azure AI Foundry</span><span class="chip">Harness AI</span>
+    </div></div>
+  </div>
+</section>
+
+</div>

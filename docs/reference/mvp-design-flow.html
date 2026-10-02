@@ -1,0 +1,858 @@
+<title>Design-First MVP Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column. Decisions, then the full system diagram and the worker pattern, then one card per part with its flow and a "concept and why" box, then the question system, the two design tools, team plan, testing, safety, v1.1/v2. */
+:root{
+  --bg:#f5f7f9; --surface:#ffffff; --sunk:#eceff3; --line:#d6dce3;
+  --fg:#17202a; --muted:#566373; --accent:#0b6e75;
+  --agents:#4b47b8; --agents-bg:#ecebfb;
+  --platform:#0b6e75; --platform-bg:#e2f3f3;
+  --product:#9a5a07; --product-bg:#fbefdc;
+  --gate:#b4232f; --gate-bg:#fbe7e8;
+  --dec:#7a4fb0; --dec-bg:#f2ebfa;
+  --why:#1d6b3a; --why-bg:#e6f4ea;
+  --code-bg:#eef1f5;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --surface:#161d25; --sunk:#1c242e; --line:#2b3542;
+    --fg:#e3e8ee; --muted:#9aa7b6; --accent:#4cc3c9;
+    --agents:#a9a5ff; --agents-bg:#25244a;
+    --platform:#4cc3c9; --platform-bg:#123236;
+    --product:#f0b25a; --product-bg:#3a2a12;
+    --gate:#ff8a92; --gate-bg:#3d1a1e;
+    --dec:#d2b0ff; --dec-bg:#2d2140;
+    --why:#7fd69c; --why-bg:#15301f;
+    --code-bg:#1b232c;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --surface:#161d25; --sunk:#1c242e; --line:#2b3542;
+  --fg:#e3e8ee; --muted:#9aa7b6; --accent:#4cc3c9;
+  --agents:#a9a5ff; --agents-bg:#25244a;
+  --platform:#4cc3c9; --platform-bg:#123236;
+  --product:#f0b25a; --product-bg:#3a2a12;
+  --gate:#ff8a92; --gate-bg:#3d1a1e;
+  --dec:#d2b0ff; --dec-bg:#2d2140;
+  --why:#7fd69c; --why-bg:#15301f;
+  --code-bg:#1b232c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:980px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,2.9rem);font-weight:700}
+h2{font-size:1.75rem;font-weight:700}
+h3{font-size:1.3rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code{font-family:var(--f-mono);font-size:.85em}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:1.08rem;color:var(--muted);max-width:70ch}
+.note{font-size:.92rem;color:var(--muted);max-width:74ch}
+header.top{padding-block:48px 26px;display:grid;gap:14px;border-bottom:1px solid var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.86rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:.7rem;font-weight:500;letter-spacing:.03em;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.o-agents{color:var(--agents);background:var(--agents-bg)}
+.o-platform{color:var(--platform);background:var(--platform-bg)}
+.o-product{color:var(--product);background:var(--product-bg)}
+.o-gate{color:var(--gate);background:var(--gate-bg)}
+.o-dec{color:var(--dec);background:var(--dec-bg)}
+.o-why{color:var(--why);background:var(--why-bg)}
+.o-soft{color:var(--muted);background:var(--sunk)}
+section{padding-block:42px 6px;display:grid;gap:18px}
+
+.toc{display:flex;flex-wrap:wrap;gap:6px}
+.toc a{text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);padding:4px 10px;border-radius:7px;font-size:.86rem}
+.toc a:hover{border-color:var(--accent)}
+
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.9rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.m{font-family:var(--f-mono);font-size:.82rem;white-space:nowrap}
+
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;overflow-x:auto}
+.diagram pre.mermaid{background:transparent;margin:0;min-width:640px;font-family:var(--f-body)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:14px;min-width:0;scroll-margin-top:16px}
+.card-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.card-head .sn{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.role{max-width:74ch}
+.two{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+.sub{display:grid;gap:8px;min-width:0}
+.sub > .eyebrow{color:var(--fg);font-weight:500}
+
+.flow{list-style:none;margin:0;padding:0;display:grid;counter-reset:f}
+.flow > li{counter-increment:f;position:relative;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;padding-bottom:11px}
+.flow > li::before{content:counter(f);font-family:var(--f-mono);font-size:.72rem;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--sunk);z-index:1}
+.flow > li::after{content:"";position:absolute;left:12px;top:26px;bottom:0;width:2px;background:var(--line)}
+.flow > li:last-child{padding-bottom:0}
+.flow > li:last-child::after{display:none}
+.flow .t{font-size:.92rem;padding-top:2px;min-width:0}
+.flow .t em{font-style:normal;font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.flow li.q::before{background:var(--dec-bg);color:var(--dec);border-radius:5px;transform:rotate(45deg) scale(.86)}
+.flow li.q .t{font-weight:600}
+.flow .br{display:block;font-weight:400;font-size:.85rem;color:var(--muted);margin-top:2px}
+.flow .br b{color:var(--fg);font-weight:500}
+.flow li.h::before{background:var(--gate-bg);color:var(--gate)}
+.flow li.h .t{color:var(--gate);font-weight:500}
+.flow li.k::before{background:var(--why-bg);color:var(--why)}
+.flow li.k .t b{color:var(--why);font-weight:600}
+
+.why{background:var(--why-bg);border-radius:10px;padding:14px 16px;display:grid;gap:8px;min-width:0}
+.why .eyebrow{color:var(--why);font-weight:500}
+.why dl{margin:0;display:grid;gap:8px}
+.why dt{font-weight:600;font-size:.86rem}
+.why dd{margin:0;font-size:.88rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.78rem;padding:2px 8px;border-radius:6px;border:1px solid var(--line);background:var(--surface)}
+
+pre.code{margin:0;background:var(--code-bg);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:.78rem;line-height:1.55}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.fcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.fcard h3{font-size:1.08rem}
+.fcard p,.fcard li{font-size:.9rem}
+.fcard ul{margin:0;padding-left:1.2em;display:grid;gap:3px}
+
+@media (max-width:780px){
+  .two,.grid2{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .card{padding:16px}
+}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">AI-enabled SDLC · MVP v1</span>
+  <h1>Design-First MVP Flow</h1>
+  <p class="lead">One project document in; approved requirement, user stories, screen list and full UI design out, in Google Stitch or Figma. Every part shows its flow, how it is checked, and a "concept and why" box you can reuse in other work.</p>
+  <div class="legend">
+    <span><span class="pill o-agents">Agent</span> AI worker</span>
+    <span><span class="pill o-platform">Script</span> code, no AI decisions</span>
+    <span><span class="pill o-product">Page</span> what people see</span>
+    <span><span class="pill o-gate">⏸ Human</span> answer or approval</span>
+    <span><span class="pill o-why">Check</span> rules + AI</span>
+  </div>
+  <p class="note">v1 is a multi-agent Claude Code plugin for internal testing on your own subscription, with non-confidential documents. v2 moves to API keys and SaaS. Audit findings are built in; see the <a href="https://claude.ai/artifact/9e4yU5DNRUYriQMdbnM6KX">Design-First MVP Audit</a>.</p>
+  <p class="note"><b>Updated to match <a href="https://claude.ai/artifact/7nMt2vxxvNAoVzBdshZKnM">MVP AI Architecture</a> revision 2</b>, after the <a href="https://claude.ai/artifact/2YinQDZJQFGBjTCGkNhNVY">MVP AI Architecture Audit</a>. Where this page and the architecture differ in detail, the architecture is the master.</p>
+  <div class="toc">
+    <a href="#decisions">Decisions</a><a href="#system">System diagram</a><a href="#pattern">Worker pattern</a><a href="#parts">Parts in detail</a><a href="#questions">Question system</a><a href="#tools">Stitch and Figma</a><a href="#team">Team plan</a><a href="#testing">Testing</a><a href="#safety">Safety and legal</a><a href="#later">v1.1 and v2</a><a href="#concepts">Concepts</a>
+  </div>
+</header>
+
+<!-- ============ DECISIONS ============ -->
+<section id="decisions">
+  <span class="eyebrow">Decisions</span>
+  <h2>What is fixed for v1</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>#</th><th>Decision</th></tr></thead>
+    <tbody>
+      <tr><td class="m">M1</td><td>Input is one project document. v1 supports <b>new apps</b> only; existing apps come in v1.1</td></tr>
+      <tr><td class="m">M2</td><td>The <code>/mvp</code> command is the orchestrator and the only part that talks to the user. A state script controls the steps and <b>checks its own conditions</b> (checks passed, approvals exist) before every move; the orchestrator rebuilds its view from the state on every run</td></tr>
+      <tr><td class="m">M3</td><td>Every output is checked twice: <b>rules in code</b> first, then an <b>AI check</b> for meaning. Failures are routed <b>by type</b>, not simply retried</td></tr>
+      <tr><td class="m">M4</td><td>A Python script reads the document and makes a cleaned copy for quote matching; AI only checks the result and describes images</td></tr>
+      <tr><td class="m">M5</td><td>Every requirement quotes the sentence (or table cell) it came from, matched on cleaned text. Standard features like login are "convention" items you confirm in one question. <b>IDs never change</b> between versions</td></tr>
+      <tr><td class="m">M6</td><td>A separate critic agent, in a fresh context, looks for gaps and rates each one: blocking, important or minor</td></tr>
+      <tr><td class="m">M7</td><td>Agents ask <b>as many questions as needed</b>, in batches (<code>questions-bN.html</code> + <code>questions-bN.md</code>), in plain words, each with "why I'm asking". After every 4 batches: "continue, or use suggestions?". An AI step matches answers to questions; you confirm</td></tr>
+      <tr><td class="m">M8</td><td>Requirement approval covers the requirement, the stories and the screen list together</td></tr>
+      <tr><td class="m">M9</td><td><b>One style message + one message per screen</b>; later screens use the approved samples as reference</td></tr>
+      <tr><td class="m">M10</td><td><b>Both Google Stitch and Figma</b>; the user chooses per project. Stitch is called by one <b>TypeScript script</b> using Google's official SDK. Figma is built from a layout file compiled by a script, and <b>gated by a 1–2 week test</b> with pass marks</td></tr>
+      <tr><td class="m">M11</td><td>1–2 samples first; feedback rebuilds the style message from the decisions log; <code>/mvp:go</code> builds the full UI using a growing design-system record</td></tr>
+      <tr><td class="m">M12</td><td>Fields are checked from the screen's code or Figma layers; vision only checks the look; colours and spacing allowed small tolerances; accessibility rules checked</td></tr>
+      <tr><td class="m">M13</td><td>Langfuse tracing in v1</td></tr>
+      <tr><td class="m">M14</td><td>Safety baseline: tool lists per agent, <b>no agent can start agents</b>, guard hook <b>blocks on any error</b>, outgoing check, keys in the keychain, safe review page</td></tr>
+      <tr><td class="m">M15</td><td>Each agent is tested as soon as it's built; end-to-end test after; full evaluation after that, using a small approved API budget only for evaluation</td></tr>
+      <tr><td class="m">M16</td><td>No Jira export in v1. No fixed time target for first screen</td></tr>
+      <tr><td class="m">M17</td><td>Crash safety: job IDs saved before waiting, safe file writes, one session per project, every file versioned</td></tr>
+      <tr><td class="m">M18</td><td>Additions: team library across projects, languages and right-to-left, "web, mobile or both?" asked early, sample data on screens, confidence per item, "what changed" in the review</td></tr>
+      <tr><td class="m">M19</td><td>Project commands: start, continue, status, approve, go, continue after budget pause, reopen, cancel, purge</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ SYSTEM ============ -->
+<section id="system">
+  <span class="eyebrow">The whole system</span>
+  <h2>System diagram</h2>
+  <p class="note">The user talks only to the orchestrator. The state script decides the next step and refuses to move unless checks and approvals are really there. Workers do the AI work. Every result passes a rules check and an AI check before it moves on; a failure is routed by its type (fix and retry, ask the user, or mark for a person). Every step is sent to Langfuse.</p>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart TD
+  U(["User"]) -->|"/mvp:start document"| O
+  subgraph ORCH["Orchestrator"]
+    O["/mvp command<br/>only part that talks to the user"]
+    S[("state script<br/>state.json, lock<br/>checks its own conditions")]
+  end
+  O <-->|"next step / save"| S
+  O --> RD["Python reader<br/>PDF / DOCX to sections<br/>+ cleaned copy for quotes"]
+  RD --> K1{"Check<br/>rules + AI"}
+  K1 -->|"pass"| W1["Requirement agent<br/>quotes every source"]
+  W1 --> CR["Critic agent<br/>fresh context, rates gaps"]
+  CR --> K2{"Check<br/>rules + AI"}
+  K2 -->|"fixable fail"| W1
+  K2 -->|"needs answers"| Q["questions-bN.html + .md<br/>batches, plain words, why<br/>check-in every 4 batches"]
+  Q --> U
+  U -->|"answers"| AM["Answer map<br/>AI matches answers,<br/>user confirms"]
+  AM --> O
+  K2 -->|"pass"| W2["BA agent<br/>stories, criteria, journeys, screen list"]
+  W2 --> K3{"Check<br/>rules + AI"}
+  K3 -->|"fail"| W2
+  K3 -->|"pass"| RV["review.html"]
+  RV -->|"approve"| W3["Design Prompt agent<br/>style message + screen messages"]
+  W3 --> K4{"Check<br/>rules + AI"}
+  K4 -->|"fail"| W3
+  K4 -->|"pass"| T{"User's tool"}
+  T -->|"Stitch"| ST["Stitch script (TypeScript)<br/>official SDK; Stitch designs"]
+  T -->|"Figma (gated)"| FL["Frame builder writes<br/>layout file"]
+  FL --> FC["Script compiles<br/>Figma code chunks"]
+  FC --> FG["Frame builder sends<br/>chunks to Figma"]
+  ST --> SF["Screen facts<br/>fields, labels, buttons"]
+  FG --> SF
+  SF --> K5{"Screen check<br/>rules + AI look"}
+  K5 -->|"missing items"| T
+  K5 -->|"samples ready"| RV2["review.html<br/>samples next to stories"]
+  RV2 -->|"feedback"| W3
+  RV2 -->|"/mvp:go"| FULL["Full UI<br/>one journey at a time<br/>design-system record"]
+  FULL --> T
+  K5 -->|"all screens pass"| DONE(["Approved design<br/>+ handoff package"])
+  LF[["Langfuse<br/>every step traced"]]
+</pre>
+  </div>
+</section>
+
+<!-- ============ PATTERN ============ -->
+<section id="pattern">
+  <span class="eyebrow">The worker pattern</span>
+  <h2>How every agent step runs</h2>
+  <p class="note">Every agent step follows the same pattern. The example below is the Requirement agent needing answers from the user.</p>
+  <div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant O as Orchestrator
+  participant S as State script
+  participant W as Worker agent
+  participant K as Checker
+  participant L as Langfuse
+  O->>S: what is the next step?
+  S-->>O: requirement_drafting
+  O->>W: run with document sections
+  W-->>O: needs_input + questions
+  O->>S: set needs_input
+  O->>U: questions-bN.html and questions-bN.md
+  U-->>O: answers written in questions-bN.md
+  O->>K: answer map (which answer covers which question)
+  K-->>O: answer map
+  O->>U: please confirm the answer map
+  U-->>O: confirmed
+  O->>S: save answers as sources ANSWER-1..n
+  O->>W: run again with answers and the previous version
+  W-->>O: requirement.json (same IDs kept)
+  O->>K: rules check (schema, stable IDs, quotes)
+  K-->>O: pass
+  O->>K: AI check (meaning, gaps)
+  K-->>O: pass
+  O->>S: advance to stories_drafting
+  S-->>O: conditions checked, moved
+  O->>L: trace of every call above
+</pre>
+  </div>
+  <div class="why">
+    <span class="eyebrow">Concept and why</span>
+    <dl>
+      <div><dt>Orchestrator and workers</dt><dd>Workers (sub-agents) start fresh, do one job and return one result. Claude Code removes the question tool from sub-agents, because several workers may run at once and would all interrupt you. Only the orchestrator talks to the human. Workers run in the background, so the orchestrator waits for each to finish, and no worker can start another worker.</dd></div>
+      <div><dt>Why it is good design</dt><dd>One place for human interaction. Every answer is saved and can be cited and audited. Workers can be rerun and tested on their own.</dd></div>
+      <div><dt>Reuse it when</dt><dd>You build any multi-agent system: keep humans talking to one coordinator, and keep workers silent and repeatable.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ============ PARTS ============ -->
+<section id="parts">
+  <span class="eyebrow">Parts in detail</span>
+  <h2>Each part: flow, check, concept and why</h2>
+
+  <!-- Orchestrator + state -->
+  <article class="card" id="p-orch">
+    <div class="card-head"><span class="sn">PART 1</span><h3>Orchestrator and state script</h3><span class="pill o-platform">Script</span></div>
+    <p class="role">The <code>/mvp</code> command runs the project. It asks the state script what to do next, starts the right worker, runs the checks, talks to the user, and saves progress. The state script, not the AI, decides the order of steps.</p>
+    <div class="two">
+      <div class="sub"><span class="eyebrow">Flow</span>
+        <ol class="flow">
+          <li><span class="t">User runs <code>/mvp:start &lt;document&gt;</code></span></li>
+          <li><span class="t">First run: check the connections to Claude, Stitch, Figma and Langfuse with harmless test calls</span></li>
+          <li><span class="t">Take the project lock and rebuild the current picture from the state, not from chat memory <em>mvp-state status</em></span></li>
+          <li><span class="t">Ask the state script for the next step <em>mvp-state next</em></span></li>
+          <li><span class="t">Start the worker for that step with only the files it needs</span></li>
+          <li><span class="t">Run the rules check, then the AI check</span></li>
+          <li class="q"><span class="t">Passed?<span class="br"><b>No:</b> route by failure type: format error → retry with the errors; vague source → question to the user; unsure check → mark for a person</span></span></li>
+          <li class="q"><span class="t">Worker needs answers?<span class="br"><b>Yes:</b> write the question files, wait for the user</span></span></li>
+          <li><span class="t">Ask the state to move forward; the state script checks for itself that checks passed and approvals exist, or refuses <em>mvp-state advance</em></span></li>
+          <li><span class="t"><code>/mvp:status</code> shows where it is; closing Claude Code and running <code>/mvp</code> again resumes there. Other commands: <code>/mvp:approve</code>, <code>/mvp:go</code>, <code>/mvp:continue</code>, <code>/mvp:reopen</code>, <code>/mvp:cancel</code>, <code>/mvp:purge</code></span></li>
+        </ol>
+      </div>
+      <div class="why">
+        <span class="eyebrow">Concept and why</span>
+        <dl>
+          <div><dt>State machine</dt><dd>A fixed list of states and allowed moves. The script stores <code>state.json</code> with the current step, versions and approvals.</dd></div>
+          <div><dt>Why code, not AI</dt><dd>An AI deciding the order can skip a step, repeat one or forget where it was. Code is exact, testable and can resume after a crash. Because the orchestrator itself is an AI, the state script double-checks every move.</dd></div>
+          <div><dt>Rule of thumb</dt><dd>AI does the thinking inside a step. Code decides which step comes next.</dd></div>
+          <div class="chips"><span class="chip">State machine</span><span class="chip">Deterministic control flow</span><span class="chip">Idempotency</span><span class="chip">Resume</span></div>
+        </dl>
+      </div>
+    </div>
+    <span class="eyebrow">Project states</span>
+    <pre class="code">uploaded → reading → requirement_drafting → critic_review ⇄ ⏸ needs_input_req → stories_drafting
+→ ⏸ awaiting_requirement_approval → design_setup ⇄ ⏸ needs_input_design → ⏸ awaiting_send_ok
+→ samples_generating → ⏸ awaiting_sample_feedback ↺ → full_generating (⇄ ⏸ paused_budget)
+→ ⏸ awaiting_final_approval → done
+also: failed_input, cancelled · /mvp:reopen goes back a stage and marks later work stale</pre>
+    <p class="note">This list matches the master state machine in the architecture (Part 2.2).</p>
+  </article>
+
+  <!-- Checker -->
+  <article class="card" id="p-check">
+    <div class="card-head"><span class="sn">PART 2</span><h3>Checker: rules + AI</h3><span class="pill o-platform">Script</span><span class="pill o-agents">Agent</span><span class="pill o-why">Check</span></div>
+    <p class="role">Runs after every worker. First a script checks everything that can be checked exactly. Only if that passes does an AI checker, in a fresh context, judge the meaning.</p>
+    <div class="two">
+      <div class="sub"><span class="eyebrow">Flow</span>
+        <ol class="flow">
+          <li class="k"><span class="t"><b>Rules:</b> file matches its schema (required fields, types)</span></li>
+          <li class="k"><span class="t"><b>Rules:</b> IDs are unique and every link points to something real</span></li>
+          <li class="k"><span class="t"><b>Rules:</b> every quote appears in the cleaned text of its section (or its table cell); IDs unchanged from the previous version</span></li>
+          <li class="k"><span class="t"><b>Rules:</b> coverage: every requirement has a story; every story has a screen</span></li>
+          <li class="q"><span class="t">All rules pass?<span class="br"><b>No:</b> return the exact errors; don't spend AI on it</span></span></li>
+          <li class="k"><span class="t"><b>AI:</b> is it clear, specific and testable? Does the quote really support the item? Anything vague or contradictory?</span></li>
+          <li><span class="t">Return pass, or a list of issues with item IDs</span></li>
+          <li class="q"><span class="t">If it failed, what kind of failure?<span class="br"><b>Format or own mistake:</b> retry with the errors (2), then more effort (1) · <b>Quote not found:</b> script shows the closest real text · <b>Client's text is vague:</b> question to the user · <b>Checker unsure:</b> 2 of 3 runs decide, marked for a person</span></span></li>
+        </ol>
+      </div>
+      <div class="why">
+        <span class="eyebrow">Concept and why</span>
+        <dl>
+          <div><dt>Hybrid validation</dt><dd>Rules are exact, instant and free, but can't judge meaning. AI can judge meaning but can be wrong and costs usage. Use both, rules first.</dd></div>
+          <div><dt>Why a fresh context</dt><dd>An AI checking its own work in the same conversation tends to approve it. A separate checker is more honest.</dd></div>
+          <div><dt>Reuse it when</dt><dd>Any AI output feeds another step: validate the format with code, then the quality with a separate AI.</dd></div>
+          <div class="chips"><span class="chip">Schema validation</span><span class="chip">Deterministic validators</span><span class="chip">LLM-as-judge</span><span class="chip">Grounding</span></div>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <!-- Reader -->
+  <article class="card" id="p-read">
+    <div class="card-head"><span class="sn">PART 3</span><h3>Document reader</h3><span class="pill o-platform">Script</span><span class="pill o-agents">AI check</span></div>
+    <p class="role">A Python script converts the document into clean sections with IDs. AI is used only to check the conversion and to describe images.</p>
+    <div class="two">
+      <div class="sub"><span class="eyebrow">Flow</span>
+        <ol class="flow">
+          <li><span class="t">Save the original file with a version</span></li>
+          <li><span class="t">Convert to Markdown: DOCX with mammoth or pandoc; PDF page by page (poppler); remove page headers and footers; join broken words</span></li>
+          <li><span class="t">Split by heading; give each section an ID <em>DOC-3.2</em>; tables get cell addresses <em>DOC-3.2/T1/R4</em></span></li>
+          <li><span class="t">Make a cleaned copy of each section for quote matching: standard quotes, spaces and characters</span></li>
+          <li><span class="t">Extract images to files</span></li>
+          <li><span class="t">Write a section index: ID, heading, length</span></li>
+          <li class="k"><span class="t"><b>Rules:</b> no empty sections; tables kept; page count matches</span></li>
+          <li class="k"><span class="t"><b>AI:</b> compare a sample of pages with the original; describe each image</span></li>
+          <li><span class="t">Scan for hidden instructions; mark those sections as untrusted</span></li>
+        </ol>
+      </div>
+      <div class="why">
+        <span class="eyebrow">Concept and why</span>
+        <dl>
+          <div><dt>Use code for exact jobs</dt><dd>Converting a file has one right answer. A script does it the same way every time, quickly, without using AI.</dd></div>
+          <div><dt>Use AI for judgment</dt><dd>Is anything lost? What does this sketch show? Those need understanding.</dd></div>
+          <div><dt>Chunking and section IDs</dt><dd>Agents read only the sections they need, and every requirement can point to its exact source.</dd></div>
+          <div class="chips"><span class="chip">Document parsing</span><span class="chip">Chunking</span><span class="chip">Multimodal model</span><span class="chip">Prompt injection protection</span></div>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <!-- Requirement + critic -->
+  <article class="card" id="p-req">
+    <div class="card-head"><span class="sn">PART 4</span><h3>Requirement agent + critic agent</h3><span class="pill o-agents">Agent</span><span class="pill o-gate">⏸ Questions</span></div>
+    <p class="role">The Requirement agent turns the document into a clear requirement where every item quotes its source. A separate critic agent then hunts for gaps. Anything unclear becomes a question for the user.</p>
+    <div class="two">
+      <div class="sub"><span class="eyebrow">Flow</span>
+        <ol class="flow">
+          <li><span class="t">Read the section index; open only relevant sections</span></li>
+          <li><span class="t">Extract goal, users, scope in and out, business rules, non-functional needs</span></li>
+          <li><span class="t">For each item, copy the exact source sentence and its position <em>"quote": "…", "source": "DOC-3.2"</em></span></li>
+          <li><span class="t">Mark items as <em>stated</em>, <em>inferred</em>, <em>answered</em> or <em>convention</em> (standard features like login); add a confidence (high, medium, low) with a one-line reason</span></li>
+          <li><span class="t">On every rerun, keep all existing IDs; only new items get new IDs</span></li>
+          <li><span class="t">Critic (fresh context) checks a fixed gap list: every user type, error cases, permissions, data life cycle, vague words, languages; rates each gap blocking, important or minor</span></li>
+          <li><span class="t">Turn every gap and assumption into a question</span></li>
+          <li class="h"><span class="t">⏸ Questions in batches until nothing important is missing (see Question system)</span></li>
+          <li><span class="t">Update the requirement with the answers as sources</span></li>
+          <li class="k"><span class="t"><b>Check:</b> rules + AI (Part 2)</span></li>
+        </ol>
+      </div>
+      <div class="why">
+        <span class="eyebrow">Concept and why</span>
+        <dl>
+          <div><dt>Grounding with quotes</dt><dd>An AI can invent requirements that sound right. Requiring an exact quote, checked by code on cleaned text, stops that. Stable IDs keep every answer, comment and approval linked.</dd></div>
+          <div><dt>Independent critic</dt><dd>A second agent with a clean memory and a fixed checklist finds more gaps than self-review.</dd></div>
+          <div><dt>Ask, don't guess</dt><dd>A wrong guess at this step multiplies into wrong stories and wrong screens later.</dd></div>
+          <div class="chips"><span class="chip">Grounding / citations</span><span class="chip">Hallucination control</span><span class="chip">Critic agent</span><span class="chip">Human-in-the-loop</span><span class="chip">Context engineering</span></div>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <!-- BA -->
+  <article class="card" id="p-ba">
+    <div class="card-head"><span class="sn">PART 5</span><h3>BA agent + screen list</h3><span class="pill o-agents">Agent</span><span class="pill o-gate">⏸ Requirement approval</span></div>
+    <p class="role">Writes the user stories, Given/When/Then criteria and journeys, and the <b>screen list</b>: every screen, its states and how screens link together. The user approves all of it together.</p>
+    <div class="two">
+      <div class="sub"><span class="eyebrow">Flow</span>
+        <ol class="flow">
+          <li><span class="t">List user roles and the journeys each one takes</span></li>
+          <li><span class="t">Write stories per journey step <em>As a … I want … so that …</em></span></li>
+          <li><span class="t">Write criteria per story, including errors and edge cases <em>Given … When … Then …</em></span></li>
+          <li><span class="t">Build the screen list: screen, purpose, role, states (empty, loading, error, success), links to other screens, realistic sample data</span></li>
+          <li><span class="t">Link each criterion to the screen that shows it</span></li>
+          <li class="k"><span class="t"><b>Check:</b> rules (every requirement has a story, every story has a screen, IDs stable) + AI (criteria testable, nothing beyond scope)</span></li>
+          <li><span class="t">Write the review page: requirement, stories and screen list, each item with its source and confidence (low-confidence items first) and <b>what changed since the last version</b></span></li>
+          <li class="h"><span class="t">⏸ User comments by item ID in <code>feedback-rN.md</code> or chat, approves parts, or approves all with <code>/mvp:approve</code>; the approval is recorded</span></li>
+        </ol>
+      </div>
+      <div class="why">
+        <span class="eyebrow">Concept and why</span>
+        <dl>
+          <div><dt>Traceability</dt><dd>Requirement → story → criterion → screen. Every screen element can be traced back to the document. This is what makes the product different.</dd></div>
+          <div><dt>Why approve the screen list</dt><dd>It decides how many screens get built, the cost, and what "complete" means. Fixing it here is cheap; fixing it after screens exist isn't.</dd></div>
+          <div class="chips"><span class="chip">Traceability</span><span class="chip">BDD (Given/When/Then)</span><span class="chip">Structured output</span><span class="chip">Few-shot examples</span></div>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <!-- Design prompt -->
+  <article class="card" id="p-design">
+    <div class="card-head"><span class="sn">PART 6</span><h3>Design Prompt agent</h3><span class="pill o-agents">Agent</span><span class="pill o-gate">⏸ Tool + design questions</span></div>
+    <p class="role">Writes <b>one style message</b> for the whole project and <b>one message per screen</b>. It uses a design skill file with the checklist and templates, and asks the user everything it needs.</p>
+    <div class="two">
+      <div class="sub"><span class="eyebrow">Flow</span>
+        <ol class="flow">
+          <li class="h"><span class="t">⏸ Ask: Google Stitch or Figma? (for Figma, also the target file) Test that connection; save the choice. Changing tool later sends samples back to this step</span></li>
+          <li><span class="t">Load the design skill: checklist, style template, screen template, sample rules; check the team library for this client's past design system and answers</span></li>
+          <li><span class="t">Mark each checklist item as answered (with source), from the team library, or missing. Asked first: <b>web, mobile or both, and screen sizes</b>; also output language and right-to-left, accessibility needs</span></li>
+          <li class="h"><span class="t">⏸ Ask the missing items in batches (Question system)</span></li>
+          <li><span class="t">Write the <b>style message</b>: product summary, roles, colours, fonts, spacing, components, navigation, things to avoid</span></li>
+          <li><span class="t">Write one <b>screen message</b> per screen from the screen list and its criteria, with realistic sample data in the output language</span></li>
+          <li><span class="t">Pick 1–2 samples: the main screen + one form screen</span></li>
+          <li class="k"><span class="t"><b>Check:</b> rules (length limit, every criterion of each screen included, colour contrast, touch-target size) + AI (no contradictions)</span></li>
+          <li class="h"><span class="t">⏸ Scan outgoing messages for secrets and personal data; show the first one to the user and wait for OK</span></li>
+        </ol>
+      </div>
+      <div class="why">
+        <span class="eyebrow">Concept and why</span>
+        <dl>
+          <div><dt>Style message + screen messages</dt><dd>Short messages stay under tool limits, each screen gets full attention, one screen can be redone alone, and a style change happens in one place.</dd></div>
+          <div><dt>Meta-prompting</dt><dd>One AI writes the instructions for another AI tool. The quality of this message decides the quality of the design.</dd></div>
+          <div><dt>Skill file</dt><dd>The checklist and templates are plain text the team can improve without changing code.</dd></div>
+          <div class="chips"><span class="chip">Meta-prompting</span><span class="chip">Agent skill</span><span class="chip">Prompt templates</span><span class="chip">Token budgets</span><span class="chip">Elicitation</span></div>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <!-- Adapters -->
+  <article class="card" id="p-adapt">
+    <div class="card-head"><span class="sn">PART 7</span><h3>Design adapters: Stitch and Figma</h3><span class="pill o-platform">Script</span><span class="pill o-agents">Figma builder: Agent</span></div>
+    <p class="role">One interface, two tools that work differently. Stitch designs a screen from the messages, called by a TypeScript script using Google's official SDK. For Figma, the frame builder agent writes a layout file, a script compiles it into small Figma code pieces, and the agent sends those pieces unchanged.</p>
+    <div class="two">
+      <div class="sub"><span class="eyebrow">Flow</span>
+        <ol class="flow">
+          <li><span class="t"><code>generate(screen)</code> called with the style message + that screen's message</span></li>
+          <li><span class="t">If a job for this screen already exists in <code>job.json</code> (after a crash), resume it instead of starting again</span></li>
+          <li class="q"><span class="t">Which tool?<span class="br"><b>Stitch:</b> the TypeScript script sends the messages, saves the job IDs <b>before</b> waiting, waits for the result, fetches image + HTML, counts quota · <b>Figma:</b> frame builder writes a layout file → script compiles code pieces under 20 KB → frame builder sends each piece, saves the node IDs after each, reads back through the write tool (no daily limit)</span></span></li>
+          <li><span class="t">Turn the result into <b>screen facts</b>: list of fields, labels, buttons, texts, states</span></li>
+          <li><span class="t">Save image, link, facts and the message version</span></li>
+          <li class="q"><span class="t">Error or rate limit?<span class="br"><b>Yes:</b> wait and retry; after 3 tries tell the user</span></span></li>
+          <li><span class="t"><code>edit(screen, change)</code> for feedback: change the existing screen instead of starting again</span></li>
+        </ol>
+      </div>
+      <div class="why">
+        <span class="eyebrow">Concept and why</span>
+        <dl>
+          <div><dt>Adapter pattern</dt><dd>The rest of the system calls <code>generate</code> and <code>edit</code> and never cares which tool is behind them. Adding a third tool later means one new adapter.</dd></div>
+          <div><dt>Normalise, then compare</dt><dd>Stitch gives HTML and Figma gives layers. Converting both into the same "screen facts" lets one checker work for both.</dd></div>
+          <div><dt>Code makes what is sent</dt><dd>Figma's write tool can only be called by an AI, so the AI only carries pieces a script compiled. What reaches Figma is exact and repeatable.</dd></div>
+          <div><dt>Save the job before waiting</dt><dd>If Claude Code closes mid-screen, the saved job IDs let the next run continue the same job instead of making a duplicate.</dd></div>
+          <div class="chips"><span class="chip">Adapter pattern</span><span class="chip">MCP</span><span class="chip">Tool calling</span><span class="chip">Retries with backoff</span><span class="chip">Normalisation</span></div>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <!-- Screen check -->
+  <article class="card" id="p-screen">
+    <div class="card-head"><span class="sn">PART 8</span><h3>Screen checker</h3><span class="pill o-platform">Script</span><span class="pill o-agents">Agent</span><span class="pill o-why">Check</span></div>
+    <p class="role">Checks that each screen has everything its message asked for, and that it matches the approved style.</p>
+    <div class="two">
+      <div class="sub"><span class="eyebrow">Flow</span>
+        <ol class="flow">
+          <li class="k"><span class="t"><b>Rules:</b> compare screen facts with the screen message: every field, label, button, state present?</span></li>
+          <li class="k"><span class="t"><b>Rules:</b> after "Go", compare colours, fonts, spacing and navigation with the design-system record, allowing small tolerances</span></li>
+          <li class="k"><span class="t"><b>Rules:</b> accessibility: text contrast and touch-target sizes</span></li>
+          <li class="k"><span class="t"><b>AI (vision):</b> does it look right, is the layout clear, anything broken?</span></li>
+          <li class="q"><span class="t">Anything missing or off-style?<span class="br"><b>Yes:</b> edit that screen with a fix note, at most 2 times, then flag it in the review</span></span></li>
+          <li><span class="t">Update the coverage report: <em>38/40 criteria visible on a screen</em></span></li>
+        </ol>
+      </div>
+      <div class="why">
+        <span class="eyebrow">Concept and why</span>
+        <dl>
+          <div><dt>Code for presence, vision for look</dt><dd>Vision models miss small labels and sometimes say things are there when they aren't. Reading the screen's code or layers is exact.</dd></div>
+          <div><dt>Design tokens</dt><dd>Colours, fonts and spacing as named values. Comparing tokens is how you prove screens are consistent.</dd></div>
+          <div class="chips"><span class="chip">Multimodal evaluation</span><span class="chip">Design tokens</span><span class="chip">Coverage check</span></div>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <!-- Feedback -->
+  <article class="card" id="p-feedback">
+    <div class="card-head"><span class="sn">PART 9</span><h3>Samples, feedback and full UI</h3><span class="pill o-product">Page</span><span class="pill o-agents">Agent</span><span class="pill o-gate">⏸ Feedback or "Go"</span></div>
+    <p class="role">The user sees 1–2 samples next to their stories. Feedback becomes decisions; the style message is rebuilt from those decisions. After "Go", the rest of the screens are built one journey at a time using the approved samples as reference.</p>
+    <div class="two">
+      <div class="sub"><span class="eyebrow">Flow</span>
+        <ol class="flow">
+          <li><span class="t">Show samples with their stories, criteria and coverage in <code>review.html</code></span></li>
+          <li class="h"><span class="t">⏸ User writes feedback per screen or overall, or "Go"</span></li>
+          <li><span class="t">Label each comment: style (all screens), one screen, or requirement change; show the user how each was understood. A requirement change goes back to the Requirement agent and marks the samples out of date</span></li>
+          <li><span class="t">Add each change to the <b>decisions log</b></span></li>
+          <li><span class="t">Rebuild the style message from the decisions log; update screen messages; show the difference</span></li>
+          <li><span class="t">Edit the samples; back to the screen check</span></li>
+          <li><span class="t"><code>/mvp:go</code>: the approval is recorded; tokens and components from the approved samples become the <b>design-system record</b>, which grows as new components appear; build each journey's screens with it</span></li>
+          <li class="h"><span class="t">⏸ Final design approval (recorded); package requirement, stories, screen list, design links, messages, decisions and design system; offer to save the design system to the team library</span></li>
+        </ol>
+      </div>
+      <div class="why">
+        <span class="eyebrow">Concept and why</span>
+        <dl>
+          <div><dt>One source of truth</dt><dd>Patching a prompt round after round piles up contradictions. Rebuilding it from a clean list of decisions keeps it consistent.</dd></div>
+          <div><dt>Reference-based generation</dt><dd>Text alone drifts from screen to screen. Using approved screens as the reference keeps the full UI looking like the samples.</dd></div>
+          <div class="chips"><span class="chip">Iterative refinement</span><span class="chip">Agent memory</span><span class="chip">Partial regeneration</span><span class="chip">Feedback classification</span></div>
+        </dl>
+      </div>
+    </div>
+  </article>
+
+  <!-- Langfuse -->
+  <article class="card" id="p-trace">
+    <div class="card-head"><span class="sn">PART 10</span><h3>Langfuse tracing</h3><span class="pill o-platform">Script</span></div>
+    <p class="role">Every step, tool call, check result and question round is recorded in Langfuse, so you can see what each agent did, how long it took and where it failed.</p>
+    <div class="two">
+      <div class="sub"><span class="eyebrow">Flow</span>
+        <ol class="flow">
+          <li><span class="t">Plugin hooks fire at each tool call and when each worker finishes</span></li>
+          <li><span class="t">A hook script sends the event to Langfuse: project, step, agent, duration, result, check outcome</span></li>
+          <li><span class="t">Keys and document text are masked before sending; metadata only by default</span></li>
+          <li><span class="t">One trace per project; one span per step</span></li>
+          <li><span class="t">If Langfuse is unreachable, events wait in the local run log and are sent later; the flow never waits</span></li>
+          <li><span class="t">Usage numbers come from Claude Code's telemetry export, since hooks don't report usage</span></li>
+          <li><span class="t">Week 1 check: the official Langfuse Claude Code integration with a pinned version</span></li>
+        </ol>
+      </div>
+      <div class="why">
+        <span class="eyebrow">Concept and why</span>
+        <dl>
+          <div><dt>Observability</dt><dd>AI systems fail in quiet ways: a skipped field, a weak question, a slow tool. Traces show exactly where.</dd></div>
+          <div><dt>Data minimisation</dt><dd>Send only what you need to debug. Customer text stays out of logs unless you choose otherwise.</dd></div>
+          <div class="chips"><span class="chip">Agent tracing</span><span class="chip">LLM observability</span><span class="chip">OpenTelemetry</span><span class="chip">Hooks</span></div>
+        </dl>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ============ QUESTIONS ============ -->
+<section id="questions">
+  <span class="eyebrow">Question system</span>
+  <h2>Ask everything the agents need</h2>
+  <p class="note">There is no fixed number of questions. Agents ask until they have what they need for the best result. Questions come in batches so the user is never faced with a wall of text. Each batch groups one topic, and blocking questions always come first. After every 4 batches the user gets a check-in.</p>
+  <div class="two">
+    <div class="sub"><span class="eyebrow">Rules</span>
+      <ol class="flow">
+        <li><span class="t">Collect all questions from the Requirement agent, critic, BA agent or Design Prompt agent; each gap is rated <b>blocking</b> (design would be wrong), <b>important</b> (a screen or rule would change) or <b>minor</b></span></li>
+        <li><span class="t">Remove duplicates and anything the document already answers</span></li>
+        <li><span class="t">All standard features (login, password reset…) go into one question: "we assumed these; untick any you don't want"</span></li>
+        <li><span class="t">Group by topic; blocking first; one batch at a time</span></li>
+        <li><span class="t">Write each question in plain words, with "why I'm asking", suggested answers, and "not sure, suggest for me"</span></li>
+        <li><span class="t">Write <code>questions-bN.html</code> (easy reading) and <code>questions-bN.md</code> (user types answers); each question has its own <code>### Q-n</code> heading</span></li>
+        <li><span class="t">Read the answers. An AI step matches each answer to the questions it covers (handles "same as Q3" or one answer for several), flags conflicts with the document, and the user <b>confirms the match</b></span></li>
+        <li><span class="t">Each confirmed answer becomes a source <em>ANSWER-12</em>; new questions can follow</span></li>
+        <li class="q"><span class="t">Every 4 batches: check-in<span class="br">Shows how many questions remain and how many are blocking. <b>Continue</b> or <b>use suggestions</b> for the rest</span></span></li>
+        <li class="q"><span class="t">Stop when?<span class="br">No blocking or important gaps remain, or the user chooses "use suggestions" (at a check-in or any time). Remaining items are shown as low-confidence assumptions in the review</span></span></li>
+      </ol>
+    </div>
+    <div class="sub"><span class="eyebrow">Example: questions-b2.md</span>
+<pre class="code">## Batch 2 — Who uses the app
+
+### Q-6. Who approves a leave request?  [blocking]
+Why I'm asking: this decides which screens
+managers see and what happens after "Submit".
+Suggestions:
+  (a) The employee's direct manager
+  (b) Manager, then HR
+  (c) Other: ____
+Not sure? Write "suggest".
+Answer:
+
+### Q-7. What happens if the manager is on leave?  [important]
+Why I'm asking: without this, requests could
+get stuck and nobody would see them.
+Suggestions:
+  (a) Goes to the manager's manager
+  (b) Goes to HR
+  (c) Waits until the manager is back
+Answer:</pre>
+    </div>
+  </div>
+  <div class="why">
+    <span class="eyebrow">Concept and why</span>
+    <dl>
+      <div><dt>Elicitation</dt><dd>Good questions are specific, explain why they matter and offer choices. Non-technical people answer faster and more accurately when they can pick from examples.</dd></div>
+      <div><dt>Answers as sources</dt><dd>Every answer is saved and quoted, so the final design can show "this button exists because of ANSWER-6".</dd></div>
+      <div><dt>Why a check-in, not a hard limit</dt><dd>A fixed cap would stop before important questions are asked; no limit at all can loop forever. A check-in with the numbers in front of the user lets them decide.</dd></div>
+      <div><dt>Why AI matches answers</dt><dd>Real answers are messy. A script can't tell that "same as above" answers Q-7, so an AI proposes the match and the user confirms it.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ============ TOOLS ============ -->
+<section id="tools">
+  <span class="eyebrow">Stitch and Figma</span>
+  <h2>Doing both: the issues and how to handle them</h2>
+  <p class="note">Both tools stay in v1, and the team has paid accounts for both. They still work very differently, so this section covers why Figma is harder, the limits of each tool, what to check first, and who handles each issue.</p>
+
+  <div class="grid2">
+    <div class="fcard">
+      <h3>Why Figma is harder than Stitch</h3>
+      <ul>
+        <li><b>Stitch is a designer; Figma is a canvas.</b> Stitch takes our message and designs the whole screen itself. Figma's MCP server has no "design this screen" command. It gives an agent tools to create frames, text, auto layout, components and variables one by one.</li>
+        <li><b>So for Figma, our agent is the designer.</b> The frame builder agent must decide every box, gap, font size and alignment from the style message and screen message. That is many more decisions and many more tool calls.</li>
+        <li><b>Small pieces only.</b> Each write call can return at most about 20 KB, so one screen is built in several steps: page frame, then layout, then each section, then fields.</li>
+        <li><b>No images yet.</b> Writing doesn't support images or components that contain images, so logos and photos become placeholders.</li>
+        <li><b>Fonts must exist in the account.</b> A font the style message asks for must be uploaded to the Figma account first, or the frame falls back to another font.</li>
+        <li><b>Beta feature.</b> Writing to the canvas is in beta. It is free now and will become a usage-based paid feature, so behaviour and cost may change.</li>
+      </ul>
+    </div>
+    <div class="fcard">
+      <h3>Why Figma is still worth it</h3>
+      <ul>
+        <li>Most client designers and enterprise teams already work in Figma</li>
+        <li>Frames built from design tokens are more consistent than generated screens</li>
+        <li>Designers can edit the result directly, with real components and auto layout</li>
+        <li>Layers give exact screen facts, which makes the field check precise</li>
+      </ul>
+      <h3>How we build Figma screens</h3>
+      <ul>
+        <li>The frame builder writes a <b>layout file</b> (frames, auto layout, components, text); a script compiles it into small Figma code pieces under 20 KB; the agent sends each piece unchanged and saves the node IDs</li>
+        <li>Reading the result back goes through the write tool, which has no daily limit</li>
+      </ul>
+      <h3>The Figma gate</h3>
+      <ul>
+        <li>A 1–2 week test with pass marks: ≤ 20 write calls per form screen, designer rating ≥ 3.5/5, 100% fields present, fonts render, no read-limit problems, crash resumes cleanly, a 30-screen project fits Max usage</li>
+        <li>If it fails: test the other route, where Stitch designs and Figma's own web-to-layers tool turns it into editable layers</li>
+        <li>If both fail: Stitch ships first, Figma moves to v1.1</li>
+        <li>Stitch's own "export to Figma" isn't available to code, so it isn't an option for automation</li>
+      </ul>
+    </div>
+  </div>
+
+  <span class="eyebrow">Limits of each tool</span>
+  <div class="tscroll"><table>
+    <thead><tr><th>Limit</th><th>Google Stitch</th><th>Figma MCP server</th></tr></thead>
+    <tbody>
+      <tr><td>How it makes a screen</td><td>Generates the whole screen from text</td><td>Agent sends script-compiled code pieces to the write tool</td></tr>
+      <tr><td>How we call it</td><td>Google's official SDK, which is <b>TypeScript only</b>; it talks to Stitch's MCP endpoint. Our one TypeScript script uses it</td><td>Figma's remote MCP server; only the frame builder agent can call its write tool</td></tr>
+      <tr><td>Account needed</td><td>Stitch account and API key (confirm the account type; no official paid plan was found online)</td><td>Full seat on a paid plan to write outside drafts; Dev seats are read-only (confirm the seat is Full)</td></tr>
+      <tr><td>Usage limits</td><td>Monthly generation quota (third-party sources: about 350 standard a month). SDK and MCP calls count against it</td><td>Read tools: <b>200 calls a day and 15 a minute</b> on Professional. Write tools are exempt from these limits</td></tr>
+      <tr><td>Response size</td><td>Not published</td><td>About 20 KB per write call</td></tr>
+      <tr><td>Images</td><td>Supported in designs</td><td>Not supported yet when writing</td></tr>
+      <tr><td>Fonts</td><td>Its own font set</td><td>Figma's documents disagree on uploaded custom fonts; test it</td></tr>
+      <tr><td>Speed</td><td>Generation can be slow; the SDK waits about 5 minutes, then we check again</td><td>Several small calls per screen</td></tr>
+      <tr><td>Output we read</td><td>Image + HTML/code export</td><td>Layer tree (node names, text, properties)</td></tr>
+      <tr><td>Status</td><td>Google Labs product; terms and plans may change</td><td>Write-to-canvas in beta; will become usage-based paid</td></tr>
+      <tr><td>Cost to Claude usage</td><td>Low: one call per screen plus checks</td><td>High: many tool calls per screen</td></tr>
+    </tbody>
+  </table></div>
+
+  <span class="eyebrow">What to check first (days 1–3)</span>
+  <div class="tscroll"><table>
+    <thead><tr><th>Check</th><th>Why</th><th>Pass when</th></tr></thead>
+    <tbody>
+      <tr><td>The TypeScript Stitch script, using the official SDK and the key from the keychain, generates 3 screens from our messages</td><td>Proves the Stitch path</td><td>3 screens with all fields from their messages; account type confirmed</td></tr>
+      <tr><td>Stitch export gives HTML we can read into screen facts</td><td>The field check depends on it</td><td>Fields, labels and buttons read correctly</td></tr>
+      <tr><td>Your Stitch plan's monthly quota</td><td>A 30-screen project with 2 fix rounds can use 60–90 generations</td><td>Quota known and written down</td></tr>
+      <tr><td>Figma seat is Full, and <code>use_figma</code> writes to a non-draft file</td><td>Dev seats can't write</td><td>A frame appears in the team file</td></tr>
+      <tr><td>Frame builder + compiler build 1 form screen from our messages</td><td>Proves the Figma path is possible; starts the Figma gate</td><td>Screen built with auto layout, all fields, correct fonts, ≤ 20 write calls</td></tr>
+      <tr><td>The guard hook can see the Figma file key</td><td>Limits Figma to one file</td><td>Calls to other files are blocked</td></tr>
+      <tr><td>Fonts from the style message are in the Figma account</td><td>Missing fonts fall back silently</td><td>No fallback fonts in the layer tree</td></tr>
+      <tr><td>Claude usage for 1 Figma screen and 1 Stitch screen</td><td>Figma uses many more calls</td><td>Usage per screen measured on Max</td></tr>
+      <tr><td>Stitch → Figma through Figma's web-to-layers tool</td><td>The other Figma route if the gate fails</td><td>Editable layers of acceptable quality, or route dropped</td></tr>
+      <tr><td>Stitch and Figma terms for client data</td><td>Needed before any real client document</td><td>Terms read and noted</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Sources: <a href="https://help.figma.com/hc/en-us/articles/39252411778583-Figma-MCP-server-FAQs">Figma MCP server FAQs</a>, <a href="https://developers.figma.com/docs/figma-mcp-server/write-to-canvas">Figma write to canvas</a>, <a href="https://developers.figma.com/docs/figma-mcp-server/rate-limits-access/">Figma MCP rate limits</a>, <a href="https://github.com/figma/mcp-server-guide">Figma MCP server guide</a>, <a href="https://github.com/google-labs-code/stitch-sdk">Google Stitch SDK</a>, <a href="https://uxmagic.ai/blog/google-stitch-pricing">Stitch plans and limits</a>. Limits change often; confirm them on your own accounts.</p>
+
+  <span class="eyebrow">Issues and who handles them</span>
+  <div class="tscroll"><table>
+    <thead><tr><th>Issue</th><th>Why it happens</th><th>How we handle it</th><th>Owner</th></tr></thead>
+    <tbody>
+      <tr><td>The tools work differently</td><td>Stitch designs from text. Figma's MCP builds frames through code; it has no "design from a prompt"</td><td>Same messages for both. The TypeScript Stitch script sends them; for Figma the frame builder writes a layout file, a script compiles it, the agent sends the pieces</td><td>Platform (Stitch), Product (Figma)</td></tr>
+      <tr><td>Stitch has no official Python SDK</td><td>Google's SDK is TypeScript only</td><td>One TypeScript script for Stitch; everything else stays Python</td><td>Platform</td></tr>
+      <tr><td>Figma read limits</td><td>200 read calls a day on Professional</td><td>Read back through the write tool, which is exempt</td><td>Product</td></tr>
+      <tr><td>A crash mid-screen</td><td>Claude Code closes while waiting for Stitch or halfway through a Figma frame</td><td>Job and node IDs saved first; the next run resumes the same job, no duplicates</td><td>Platform + Product</td></tr>
+      <tr><td>Figma seat type</td><td>Writing needs a Full seat; a Figma API key alone can read but not draw</td><td>You have a paid account; confirm the seat is Full on days 1–3</td><td>Product</td></tr>
+      <tr><td>Figma is beta and will be paid by usage</td><td>Write-to-canvas pricing and behaviour may change</td><td>Keep the adapter interface so the Figma path can change without touching the rest</td><td>Product</td></tr>
+      <tr><td>Stitch monthly quota</td><td>Every generation and edit counts, including MCP calls</td><td>Screen budget per project; edit instead of regenerate; count usage in Langfuse</td><td>Platform</td></tr>
+      <tr><td>Figma response limits</td><td>Each MCP response is capped (about 20 KB); images aren't supported; fonts must be available</td><td>Build each frame in small pieces; use fonts available in Figma; images as placeholders</td><td>Product</td></tr>
+      <tr><td>Stitch limits</td><td>Quotas aren't published; generation can be slow; it's a Google Labs product</td><td>One screen at a time; job IDs saved before waiting; a screen budget per project; read Stitch's terms</td><td>Platform</td></tr>
+      <tr><td>Different outputs</td><td>Stitch gives HTML; Figma gives a layer tree</td><td>Both converted into the same screen facts; one checker</td><td>Platform + Product</td></tr>
+      <tr><td>Different consistency</td><td>Stitch can drift between screens; Figma frames are built from tokens</td><td>A design-system record from the approved samples that grows during the build; small tolerances; Stitch uses samples as reference if the SDK allows it</td><td>Agents</td></tr>
+      <tr><td>Twice the testing</td><td>Every design test must run on both tools</td><td>Shared test cases; results reported per tool, never averaged</td><td>Agents</td></tr>
+      <tr><td>Usage limits</td><td>The Figma builder makes many tool calls; that uses more of the Claude subscription</td><td>Measure one full project on each tool; testers on Max</td><td>All</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ TEAM ============ -->
+<section id="team">
+  <span class="eyebrow">Team plan</span>
+  <h2>Three people, both tools</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Owner</th><th>Builds</th></tr></thead>
+    <tbody>
+      <tr><td>Agents</td><td>Requirement agent, critic, BA agent, Design Prompt agent and design skill, AI parts of all checks, consistency check, test cases</td></tr>
+      <tr><td>Platform</td><td>Plugin and <code>/mvp</code> commands, state script (with its own condition checks, lock, resume), guard hook (fails closed), rules checks and schemas, Python reader, TypeScript Stitch script, screen facts from HTML, Langfuse hooks</td></tr>
+      <tr><td>Product</td><td>Question files (HTML + MD) and answer-map screen, review page (confidence, "what changed"), Figma frame builder and layout compiler, screen facts from Figma layers, safety of the review page, team library</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Agreed in week 1, before anyone builds: the full folder tree, file formats (schemas) and state format, the adapter interface (<code>generate</code>, <code>edit</code>, <code>resume</code>, screen facts), the layout file format, and the question file format. With these fixed, the three can work in parallel.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Phase</th><th>Estimate</th><th>Done when</th></tr></thead>
+    <tbody>
+      <tr><td>1. Foundations</td><td>Weeks 1–2</td><td>The 11 week-1 tests pass (Stitch script, guard hook, scripts on Windows, quote matching, usage); Figma gate started; plugin runs; state script, checker framework, reader and Langfuse hooks work</td></tr>
+      <tr><td>2. Understand</td><td>Weeks 3–4</td><td>Requirement + critic + question batches with check-in and answer map + BA + screen list + review page, each tested on its own. Figma gate decided</td></tr>
+      <tr><td>3. Design</td><td>Weeks 5–6</td><td>Design Prompt agent; Stitch adapter, and Figma if it passed the gate, produce 2 samples that pass the screen check</td></tr>
+      <tr><td>4. Full flow</td><td>Weeks 7–8</td><td>Feedback loop and full UI on both tools; safety items; end-to-end test on 3–5 documents</td></tr>
+      <tr><td>5. Evaluation</td><td>Weeks 9–10</td><td>20 documents × 3 runs, judges checked against human scores, failure tests</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">The estimates are a guide; you said time is not the constraint. The order matters more than the dates.</p>
+</section>
+
+<!-- ============ TESTING ============ -->
+<section id="testing">
+  <span class="eyebrow">Testing</span>
+  <h2>Test each agent as it's built</h2>
+  <div class="grid2">
+    <div class="fcard"><h3>Every agent, before it's "done"</h3><ul>
+      <li>At least 10 test inputs, including empty, contradictory, very long, non-English and injected documents</li>
+      <li>Rules check and AI check pass on all of them</li>
+      <li>5 real runs reviewed by a person in Langfuse</li>
+      <li>Time and usage per run measured</li>
+    </ul></div>
+    <div class="fcard"><h3>End to end, after the full flow works</h3><ul>
+      <li>3–5 documents through the whole flow on both tools</li>
+      <li>Close Claude Code mid-step, including while waiting for Stitch and halfway through a Figma frame; it must resume with no duplicate screens</li>
+      <li>Rate limits and usage limits mid-build</li>
+      <li>Force the guard hook to crash; the action must be blocked</li>
+      <li>Two sessions on one project; the second must be refused</li>
+      <li>Edit a question's text; the user must be warned</li>
+      <li>No key in chat, files or Langfuse</li>
+    </ul></div>
+    <div class="fcard"><h3>Full evaluation, after that</h3><ul>
+      <li>About 20 documents: 12 real with a reviewed answer, 8 tricky</li>
+      <li>3 runs each; report average and worst</li>
+      <li>AI judges compared with about 50 human labels first</li>
+      <li>Design results reported separately for Stitch and Figma</li>
+    </ul></div>
+    <div class="fcard"><h3>Concept and why</h3><ul>
+      <li>AI answers vary between runs, so one run proves little</li>
+      <li>A judge you haven't checked might be wrong in a consistent way</li>
+      <li>Testing each agent early finds problems where they're cheap to fix</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============ SAFETY ============ -->
+<section id="safety">
+  <span class="eyebrow">Safety and legal</span>
+  <h2>Baseline for v1</h2>
+  <div class="grid2">
+    <div class="fcard"><h3>Safety</h3><ul>
+      <li>Every agent has an explicit tool list; no agent can start other agents; a guard hook blocks running commands, web fetch and writes outside each agent's allowed folders</li>
+      <li>The guard hook <b>blocks on any error</b> of its own (in Claude Code, a crashing hook would otherwise let the action through)</li>
+      <li>One session per project (lock file); files written safely and versioned</li>
+      <li>Document, Figma and Stitch content are treated as data, never as instructions</li>
+      <li>Outgoing messages built only from checked fields, scanned for secrets and personal data</li>
+      <li>Stitch key in the OS keychain through the plugin's sensitive setting</li>
+      <li><code>review.html</code> escapes all text, blocks scripts and remote images</li>
+      <li>Screen names turned into safe file names; <code>.agent-mvp/</code> in <code>.gitignore</code></li>
+      <li>MCP servers pinned to exact versions, official sources only</li>
+    </ul></div>
+    <div class="fcard"><h3>Legal</h3><ul>
+      <li>v1 for internal testing with non-confidential documents on your subscription</li>
+      <li>Read Stitch's own terms before any customer data</li>
+      <li>Turn off Figma's AI content training</li>
+      <li>Client permission before their documents go to Anthropic, Google and Figma</li>
+      <li>Team or Enterprise Claude plans for customer work</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============ LATER ============ -->
+<section id="later">
+  <span class="eyebrow">Next versions</span>
+  <h2>v1.1 and v2</h2>
+  <div class="grid2">
+    <div class="fcard"><h3>v1.1: existing apps</h3><p>For projects that add to or change an app that already exists.</p><ul>
+      <li>Ask "new or existing app?" at the start</li>
+      <li>Read the app's code and style files, read-only</li>
+      <li>User uploads screenshots of current screens</li>
+      <li>Extract the current look as design tokens; new screens must match it</li>
+      <li>List existing screens and features so requirements fit what's there</li>
+      <li>No building or running the app</li>
+    </ul></div>
+    <div class="fcard"><h3>v2: SaaS on API keys</h3><p>The same agents, skill, schemas and MCP setup, run through the Agent SDK.</p><ul>
+      <li>API keys instead of personal subscriptions</li>
+      <li>Dashboard instead of local HTML files</li>
+      <li>Postgres instead of local files</li>
+      <li>Teams, login, billing</li>
+      <li>Customer access stored in a secrets vault</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============ CONCEPTS ============ -->
+<section id="concepts">
+  <span class="eyebrow">All concepts used</span>
+  <h2>Concept list</h2>
+  <div class="chips">
+    <span class="chip">Adapter pattern</span><span class="chip">Agent harness</span><span class="chip">Agent memory</span><span class="chip">Agent skill</span><span class="chip">Agent tracing</span><span class="chip">BDD (Given/When/Then)</span><span class="chip">Chunking</span><span class="chip">Context engineering</span><span class="chip">Coverage check</span><span class="chip">Critic agent</span><span class="chip">Data minimisation</span><span class="chip">Design tokens</span><span class="chip">Deterministic control flow</span><span class="chip">Deterministic validators</span><span class="chip">Document parsing</span><span class="chip">Elicitation</span><span class="chip">Evaluation</span><span class="chip">Feedback classification</span><span class="chip">Few-shot examples</span><span class="chip">Grounding / citations</span><span class="chip">Guardrails</span><span class="chip">Hallucination control</span><span class="chip">Hooks</span><span class="chip">Human-in-the-loop</span><span class="chip">Hybrid validation</span><span class="chip">Idempotency</span><span class="chip">Iterative refinement</span><span class="chip">Least privilege</span><span class="chip">LLM-as-judge</span><span class="chip">LLM observability</span><span class="chip">MCP</span><span class="chip">Meta-prompting</span><span class="chip">Multi agent system</span><span class="chip">Multimodal evaluation</span><span class="chip">Multimodal model</span><span class="chip">Normalisation</span><span class="chip">OpenTelemetry</span><span class="chip">Orchestrator and workers</span><span class="chip">Partial regeneration</span><span class="chip">Prompt injection protection</span><span class="chip">Prompt templates</span><span class="chip">Reference-based generation</span><span class="chip">Retries with backoff</span><span class="chip">Schema validation</span><span class="chip">Single source of truth</span><span class="chip">State machine</span><span class="chip">Structured output</span><span class="chip">Sub-agents</span><span class="chip">Token budgets</span><span class="chip">Tool calling</span><span class="chip">Traceability</span><span class="chip">Fail closed</span><span class="chip">Failure routing by type</span><span class="chip">Answer map</span><span class="chip">Text normalisation</span><span class="chip">Stable IDs</span><span class="chip">Layout compilation</span><span class="chip">Design-system record</span><span class="chip">Tolerance bands</span><span class="chip">Lock file</span><span class="chip">Accessibility (WCAG)</span><span class="chip">Cross-project memory</span>
+  </div>
+</section>
+
+</div>

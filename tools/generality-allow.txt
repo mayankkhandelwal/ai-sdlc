@@ -1,0 +1,2 @@
+# Generic words that may appear in agent, skill and prompt files even though a test document uses them.
+# One word per line, with a reason after '#'. Keep this list short; every entry is reviewed.

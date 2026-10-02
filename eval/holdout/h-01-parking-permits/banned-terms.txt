@@ -1,0 +1,32 @@
+harrowmere
+kerbside permits
+kerbside
+myharrowmere
+hcc/pt/2026/041
+controlled parking zone
+cpz
+hz-a
+hz-n
+parking permit officer
+senior permit officer
+service administrator
+carer permit
+visitor permit
+resident permit
+res-1
+res-e
+vis-d
+bus-1
+car-1
+trd-1
+med-1
+vrm
+vehicle registration mark
+traffic management order
+land and property gazetteer
+civil enforcement officer
+visitor allowance
+120 visitor days
+zero-emission vehicle
+assisted digital
+penalty charge notice

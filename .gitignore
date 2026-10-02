@@ -1,0 +1,12 @@
+# Runtime state of test projects
+.agent-mvp/
+projects/
+# Python
+__pycache__/
+*.pyc
+.venv/
+# Node
+node_modules/
+# Local secrets (never commit keys)
+.env
+*.key

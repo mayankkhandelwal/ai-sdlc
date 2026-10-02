@@ -1,0 +1,373 @@
+<title>Design-First MVP Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single column audit report. Verdict, then decisions that need the owner, then fixes grouped by area, then week-1 checks, evaluation, security and compliance baselines, sources. */
+:root{
+  --bg:#f5f7f9; --surface:#ffffff; --sunk:#eceff3; --line:#d6dce3;
+  --fg:#17202a; --muted:#566373; --accent:#0b6e75;
+  --crit:#b4232f; --crit-bg:#fbe7e8;
+  --high:#a9520a; --high-bg:#fcecdc;
+  --med:#6d5a00; --med-bg:#f6f0cf;
+  --ok:#1d6b3a; --ok-bg:#e1f2e7;
+  --dec:#7a4fb0; --dec-bg:#f2ebfa;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --surface:#161d25; --sunk:#1c242e; --line:#2b3542;
+    --fg:#e3e8ee; --muted:#9aa7b6; --accent:#4cc3c9;
+    --crit:#ff8a92; --crit-bg:#3d1a1e;
+    --high:#f5a65b; --high-bg:#3a2612;
+    --med:#e3cf6a; --med-bg:#332d10;
+    --ok:#7fd69c; --ok-bg:#16301f;
+    --dec:#d2b0ff; --dec-bg:#2d2140;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --surface:#161d25; --sunk:#1c242e; --line:#2b3542;
+  --fg:#e3e8ee; --muted:#9aa7b6; --accent:#4cc3c9;
+  --crit:#ff8a92; --crit-bg:#3d1a1e;
+  --high:#f5a65b; --high-bg:#3a2612;
+  --med:#e3cf6a; --med-bg:#332d10;
+  --ok:#7fd69c; --ok-bg:#16301f;
+  --dec:#d2b0ff; --dec-bg:#2d2140;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:920px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5vw,2.8rem);font-weight:700}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.15rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent);overflow-wrap:anywhere}
+code{font-family:var(--f-mono);font-size:.85em}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:1.08rem;color:var(--muted);max-width:68ch}
+.note{font-size:.9rem;color:var(--muted);max-width:72ch}
+header.top{padding-block:48px 26px;display:grid;gap:14px;border-bottom:1px solid var(--line)}
+section{padding-block:40px 4px;display:grid;gap:16px}
+
+.sev{display:inline-block;font-family:var(--f-mono);font-size:.68rem;font-weight:500;letter-spacing:.04em;padding:2px 8px;border-radius:999px;white-space:nowrap;text-transform:uppercase}
+.s-crit{color:var(--crit);background:var(--crit-bg)}
+.s-high{color:var(--high);background:var(--high-bg)}
+.s-med{color:var(--med);background:var(--med-bg)}
+.s-ok{color:var(--ok);background:var(--ok-bg)}
+.s-dec{color:var(--dec);background:var(--dec-bg)}
+
+.verdict{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:12px}
+.verdict p{max-width:72ch}
+
+.lenses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lens{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px;align-content:start;min-width:0}
+.lens b{font-family:var(--f-display);font-size:1.02rem}
+.lens p{font-size:.86rem;color:var(--muted)}
+
+.dcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:10px;min-width:0}
+.dhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dgrid > div{background:var(--sunk);border-radius:8px;padding:10px 12px;min-width:0}
+.dgrid .eyebrow{display:block;margin-bottom:3px}
+.dgrid p{font-size:.88rem}
+.who{font-size:.82rem;color:var(--muted)}
+
+.fixes{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.fix{display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;padding:12px 14px;align-items:start}
+.fix + .fix{border-top:1px solid var(--line)}
+.fix .body{display:grid;gap:3px;min-width:0}
+.fix .body b{font-weight:600}
+.fix .body p{font-size:.9rem}
+.fix .body .w{font-size:.8rem;color:var(--muted);font-family:var(--f-mono)}
+
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.9rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.box ul{margin:0;padding-left:1.2em;display:grid;gap:4px;font-size:.9rem}
+ul.src{font-size:.82rem;display:grid;gap:4px;margin:0;padding-left:1.2em}
+
+@media (max-width:760px){
+  .lenses,.dgrid{grid-template-columns:1fr 1fr}
+  .cols{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .lenses,.dgrid{grid-template-columns:1fr}
+  .fix{grid-template-columns:1fr;gap:6px}
+}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">Audit · Design-First MVP · 6 independent reviews</span>
+  <h1>Design-First MVP Audit</h1>
+  <p class="lead">Six reviewers read the <a href="https://claude.ai/artifact/YCQjS3qjU4wgEBmYdhSDnb">Design-First MVP Flow</a> independently: AI expert, AI engineer, security, product and UX, legal and compliance, and QA and evaluation. Below: what they agree on, which of your fixed decisions they challenge, and what must change before building.</p>
+  <p class="note">Facts the reviewers checked against official docs are linked in Sources. Everything else is their judgment. The legal points are risks to check with counsel, not legal advice.</p>
+</header>
+
+<section id="verdict">
+  <span class="eyebrow">Verdict</span>
+  <div class="verdict">
+    <p><b>Keep the flow. Change the scope and harden it before building.</b> All six reviewers think the requirement half (steps 3–5) is well designed: grounding, human questions, coverage checked by code and partial regeneration. The design half (steps 6–9) depends on three things nobody has tested yet: that both design tools can generate screens from a prompt, that a text master prompt keeps screens consistent, and that a vision check can confirm a screen matches its spec.</p>
+    <p>Four reviewers independently recommend shipping <b>Google Stitch only</b> in v1. The full scope as written takes about <b>10–12 weeks</b>, not 7–8. With the cuts below, 7–8 weeks is realistic.</p>
+  </div>
+  <div class="lenses">
+    <div class="lens"><b>AI expert</b><p>Requirements: sound. Design consistency and vision checks: unproven. Add a screen inventory.</p></div>
+    <div class="lens"><b>AI engineer</b><p>Plugin works. Sub-agents can't ask questions; Figma can't generate from a prompt. 10–12 weeks for full scope.</p></div>
+    <div class="lens"><b>Security</b><p>Agents inherit all tools unless restricted. Builds on the user's laptop are dangerous. Restrict tools, don't rely on detection.</p></div>
+    <div class="lens"><b>Product and UX</b><p>The v1 user and the surface don't match. Screens arrive too late. Traceability is the edge.</p></div>
+    <div class="lens"><b>Legal and compliance</b><p>Pro and Max are consumer plans; use Team or Enterprise for customer data. Stitch terms unverified.</p></div>
+    <div class="lens"><b>QA and evaluation</b><p>Metrics are the right kind, but ground truth, judges and the vision check need fixing. 3 runs per document.</p></div>
+  </div>
+</section>
+
+<section id="decide">
+  <span class="eyebrow">Needs your decision</span>
+  <h2>Five decisions the reviewers challenge</h2>
+  <p class="note">These change things you fixed earlier, so they are yours to decide. Each card gives the reviewers' recommendation and what happens if you keep your original choice.</p>
+
+  <div class="dcard">
+    <div class="dhead"><span class="sev s-crit">Critical</span><h3>D-A · Both Stitch and Figma in v1 (M7)</h3></div>
+    <p>Figma's MCP can create and edit frames through code (<code>use_figma</code>), but it has no "generate a screen from a prompt". So the same master prompt cannot drive both tools: for Figma, Claude would have to build every frame itself. Writing needs a Full seat, the feature is in beta, and responses are capped at 20 KB.</p>
+    <div class="dgrid">
+      <div><span class="eyebrow">Recommended</span><p>Stitch only in v1. Figma in v1.1, as an export target or "Claude builds frames from tokens"</p></div>
+      <div><span class="eyebrow">If you keep both</span><p>Add 2–3 weeks, not 1; quality will differ per tool</p></div>
+      <div><span class="eyebrow">Check in week 1</span><p>Generate 3 real screens on each tool</p></div>
+    </div>
+    <p class="who">Raised by: AI engineer (verified), AI expert, Product, QA</p>
+  </div>
+
+  <div class="dcard">
+    <div class="dhead"><span class="sev s-high">High</span><h3>D-B · Running on Pro and Max subscriptions (M8)</h3></div>
+    <p>Pro and Max are consumer plans. If the user's training setting is on, Anthropic may train on their sessions, including Claude Code, and keep data up to 5 years. Team, Enterprise and API are not trained on. Customer documents should not go through consumer accounts.</p>
+    <div class="dgrid">
+      <div><span class="eyebrow">Recommended</span><p>Pro/Max allowed for internal tests with non-confidential documents only. Team or Enterprise required for customer work</p></div>
+      <div><span class="eyebrow">If you keep Pro/Max for all</span><p>Customer data may be trained on; most enterprises and DPAs will block it</p></div>
+      <div><span class="eyebrow">Also</span><p>Usage limits may stop a full run; measure one project on Pro and Max</p></div>
+    </div>
+    <p class="who">Raised by: Legal (verified), AI engineer, AI expert</p>
+  </div>
+
+  <div class="dcard">
+    <div class="dhead"><span class="sev s-high">High</span><h3>D-C · Readiness check that builds the existing app (M2, step 2)</h3></div>
+    <p>Building an unknown repo runs its install and build scripts. That is someone else's code running on the user's laptop. Docker "when available" isn't safe enough, and build-and-run across unknown stacks, especially on Windows, is a project of its own.</p>
+    <div class="dgrid">
+      <div><span class="eyebrow">Recommended</span><p>v1 reads code and theme/CSS files only, plus screenshots the user uploads. No building. Build-and-run moves to v2</p></div>
+      <div><span class="eyebrow">If you keep building</span><p>Docker becomes mandatory, hardened (no network, no host mounts); add about 1–2 weeks</p></div>
+      <div><span class="eyebrow">Saves</span><p>About 1–2 weeks and the biggest security risk</p></div>
+    </div>
+    <p class="who">Raised by: Security, AI engineer, Product</p>
+  </div>
+
+  <div class="dcard">
+    <div class="dhead"><span class="sev s-crit">Critical</span><h3>D-D · Who the v1 user is</h3></div>
+    <p>BAs, PMs and designers review stories and screens, and they don't work in Claude Code. Developers do, but they already have v0, Lovable and Figma Make. Setup (Claude plan, Stitch key, Figma, GitHub, Docker) and about 7 human steps before the first screen will lose evaluators.</p>
+    <div class="dgrid">
+      <div><span class="eyebrow">Recommended</span><p>Your team runs v1 for the first 5 design partners (concierge mode). The v1 user is an agency's solution lead or presales engineer</p></div>
+      <div><span class="eyebrow">Also</span><p>One merged questionnaire; the review page is the only place to review; first screen within about 15 minutes</p></div>
+      <div><span class="eyebrow">If you keep self-serve</span><p>Plan for a guided <code>/mvp:setup</code>, a setup video, and lower take-up</p></div>
+    </div>
+    <p class="who">Raised by: Product</p>
+  </div>
+
+  <div class="dcard">
+    <div class="dhead"><span class="sev s-high">High</span><h3>D-E · The 7–8 week estimate</h3></div>
+    <p>The full scope as written (both adapters, Docker readiness, review page with comments, the evaluation set) is about 10–12 weeks.</p>
+    <div class="dgrid">
+      <div><span class="eyebrow">Recommended</span><p>Accept D-A and D-C to stay at 7–8 weeks, with week 8 as buffer and pilot</p></div>
+      <div><span class="eyebrow">If you keep full scope</span><p>Plan for 10–12 weeks</p></div>
+      <div><span class="eyebrow">Week by week</span><p>See the build order below</p></div>
+    </div>
+    <p class="who">Raised by: AI engineer, Product</p>
+  </div>
+</section>
+
+<section id="fixes">
+  <span class="eyebrow">Must fix · no decision needed</span>
+  <h2>Changes to the design</h2>
+  <p class="note">These fix things that are wrong or missing without changing your decisions.</p>
+
+  <h3>How the plugin works</h3>
+  <div class="fixes">
+    <div class="fix"><span class="sev s-crit">Critical</span><div class="body"><b>Sub-agents can't ask the user questions</b><p>The question tool is removed inside sub-agents. Agents return <code>needs_input</code> with their questions; the main <code>/mvp</code> command asks the user, saves the answers as sources, and starts the agent again.</p><span class="w">Steps 3, 6, 8 · verified</span></div></div>
+    <div class="fix"><span class="sev s-high">High</span><div class="body"><b>Nothing enforces the JSON schemas</b><p>A hook runs a bundled validator after each agent writes its file; errors go back to the agent, max 2 retries.</p><span class="w">All steps · verified</span></div></div>
+    <div class="fix"><span class="sev s-high">High</span><div class="body"><b>Plugin agents ignore their own MCP and hook settings</b><p>Declare Stitch, Figma and GitHub in the plugin's <code>.mcp.json</code> and hooks at plugin level; limit each agent with its <code>tools</code> list.</p><span class="w">Foundations · verified</span></div></div>
+    <div class="fix"><span class="sev s-med">Medium</span><div class="body"><b>An LLM shouldn't run the state machine</b><p>A small <code>mvp-state</code> script in the plugin's <code>bin/</code> folder handles steps, versions and approvals; the command calls it.</p><span class="w">States · judgment</span></div></div>
+    <div class="fix"><span class="sev s-med">Medium</span><div class="body"><b>v2 parts are mixed into v1</b><p>Remove <code>runAgent()</code>, Langfuse and pgvector from v1; label them v2. In v2 the SDK's <code>query()</code> loads the same plugin folder.</p><span class="w">Steps 3, 7, 9 · verified</span></div></div>
+    <div class="fix"><span class="sev s-med">Medium</span><div class="body"><b>DOCX can't be read; PDFs read 20 pages at a time</b><p>Bundle a DOCX converter (mammoth or pandoc) behind a script; read PDFs in page ranges; drop OCR from v1.</p><span class="w">Step 1 · verified for PDF</span></div></div>
+    <div class="fix"><span class="sev s-med">Medium</span><div class="body"><b>Stitch quotas aren't published and generation is slow</b><p>Generate screens one after another with polling; set a screen budget per project.</p><span class="w">Steps 7, 9 · partly verified</span></div></div>
+  </div>
+
+  <h3>AI design</h3>
+  <div class="fixes">
+    <div class="fix"><span class="sev s-crit">Critical</span><div class="body"><b>A text master prompt won't keep screens consistent</b><p>After "Go", take the tokens and components from the approved samples' exported code. Generate later screens in the same Stitch project with the approved sample as reference, or in edit/variant mode. Then check colours, fonts and navigation against the sample in code.</p><span class="w">Steps 6, 7, 9</span></div></div>
+    <div class="fix"><span class="sev s-high">High</span><div class="body"><b>Vision check is the wrong tool for "are all fields there"</b><p>Check fields, labels and buttons by parsing the exported HTML against the screen spec; use vision only for layout and style. Measure the checker on about 30 screens with planted defects.</p><span class="w">Steps 7, 9</span></div></div>
+    <div class="fix"><span class="sev s-high">High</span><div class="body"><b>No screen inventory</b><p>Add a <code>ScreenInventory</code> record: every screen, its states and the navigation map. The user approves it as part of the requirement approval in step 5, not as an extra step.</p><span class="w">Steps 4–6</span></div></div>
+    <div class="fix"><span class="sev s-med">Medium</span><div class="body"><b>A citation existing doesn't mean it supports the item</b><p>Require a quoted span from the source and check in code that it appears in that section. Show "inferred" items to the user as assumptions to confirm.</p><span class="w">Step 3</span></div></div>
+    <div class="fix"><span class="sev s-med">Medium</span><div class="body"><b>Self-critique in the same context finds little</b><p>Run a separate critic in a fresh context with a fixed list of gap types (actors, error paths, permissions, data lifecycle, vague words). It outputs issues only.</p><span class="w">Steps 3, 6</span></div></div>
+    <div class="fix"><span class="sev s-med">Medium</span><div class="body"><b>Patching the prompt every round builds up contradictions</b><p>Rebuild the master prompt each round from the design decisions log. Show the user how each comment was classified and the prompt diff; edit screens instead of regenerating them.</p><span class="w">Step 8</span></div></div>
+  </div>
+
+  <h3>Product</h3>
+  <div class="fixes">
+    <div class="fix"><span class="sev s-high">High</span><div class="body"><b>Make traceability the centre of the product</b><p>Generating screens from prompts is common; linking every screen element to an acceptance criterion and a source paragraph, with a coverage report ("38/40 criteria visible"), is not. Put that at the centre of the review page and the demo.</p><span class="w">Review page, step 9</span></div></div>
+    <div class="fix"><span class="sev s-med">Medium</span><div class="body"><b>Fewer human steps</b><p>Merge requirement and design questions into one questionnaire; up to 2 sample rounds; final approval optional.</p><span class="w">Steps 3, 6, 8, 10</span></div></div>
+    <div class="fix"><span class="sev s-med">Medium</span><div class="body"><b>Add business success measures</b><p>Time to first screen ≤ 15 minutes; BA hours saved ≥ 50%; at least 3 of 5 partners use it again; at least 1 paid pilot.</p><span class="w">Evaluation</span></div></div>
+    <div class="fix"><span class="sev s-med">Medium</span><div class="body"><b>Stories need to reach Jira</b><p>Export stories as CSV for Jira or Azure DevOps in v1; a full integration can come later.</p><span class="w">Step 10</span></div></div>
+  </div>
+</section>
+
+<section id="consensus">
+  <span class="eyebrow">Where reviewers agree and disagree</span>
+  <h2>Consensus and disagreements</h2>
+  <div class="cols">
+    <div class="box"><h3>All or most agree</h3><ul>
+      <li>The requirement half is well designed; keep it</li>
+      <li>"Feedback changes the prompt, not just the picture" plus samples before the full build is the right loop</li>
+      <li>Ship one design tool first (Stitch)</li>
+      <li>Don't build unknown repos in v1</li>
+      <li>Remove v2 infrastructure from v1</li>
+      <li>LLM judges and the vision check must be calibrated against human labels</li>
+      <li>Check Stitch's data terms in week 1</li>
+    </ul></div>
+    <div class="box"><h3>Disagreements, resolved</h3><ul>
+      <li><b>More steps or fewer?</b> The AI expert adds a screen inventory approval; Product wants fewer steps. Resolved: the inventory goes inside the existing requirement approval.</li>
+      <li><b>Questions before or after the first screen?</b> Product wants a screen first; AI design wants questions first for quality. This is a value choice: a fast draft screen with defaults, then questions, is an option for you to try with partners.</li>
+      <li><b>Self-serve or run for partners?</b> This is a business choice (D-D).</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="security">
+  <span class="eyebrow">Security baseline for v1</span>
+  <h2>Minimum before anyone uses it</h2>
+  <div class="cols">
+    <div class="box"><h3>Agents and tools</h3><ul>
+      <li>Every agent has an explicit <code>tools</code> list; agents without one get every tool, including Bash</li>
+      <li>A hook blocks Bash, web fetch and writes outside <code>.agent-mvp/</code></li>
+      <li>Plugin code, not the model, writes files and makes MCP calls</li>
+      <li>All outside content (document, repo, Figma, Stitch, text in images) is treated as data, with an injection test for each</li>
+      <li>Screen names become safe file names; no paths outside the project</li>
+    </ul></div>
+    <div class="box"><h3>Data and secrets</h3><ul>
+      <li>Messages to Stitch or Figma are built only from validated fields, scanned for secrets and personal data, and the first one is shown to the user</li>
+      <li>Stitch key stored through the plugin's sensitive setting (OS keychain)</li>
+      <li>GitHub token read-only on one repo</li>
+      <li><code>review.html</code>: escape everything, strict content policy, sandboxed previews, no remote images</li>
+      <li><code>.agent-mvp/</code> added to <code>.gitignore</code>; logs hold metadata only; a purge command</li>
+      <li>MCP servers pinned to exact versions, from official sources only</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="compliance">
+  <span class="eyebrow">Compliance</span>
+  <h2>Before customer data, and before selling</h2>
+  <div class="cols">
+    <div class="box"><h3>Before customer data in v1</h3><ul>
+      <li>Team or Enterprise seats only</li>
+      <li>Client contract allows AI sub-processors: Anthropic, Google, Figma</li>
+      <li>Stitch's own terms reviewed, or Stitch off for that client</li>
+      <li>Figma content training off (on by default for Starter and Professional)</li>
+      <li>Personal data and secrets removed from documents</li>
+      <li>Local transcript retention set; Claude Code's feedback upload turned off</li>
+    </ul></div>
+    <div class="box"><h3>Before selling v2</h3><ul>
+      <li>Anthropic commercial terms or an Enterprise agreement; Bedrock or Vertex for customer-cloud installs</li>
+      <li>Written confirmation from Google and Figma on commercial use and resale</li>
+      <li>India DPDP Act duties (most apply from about May 2027); GDPR if selling in the EU</li>
+      <li>Customer terms: no copyright promise on purely AI-made output</li>
+      <li>SOC 2 or ISO 27001 plan; published sub-processor list</li>
+      <li>Product name without "Claude" or "Anthropic"</li>
+      <li>A plan for Stitch being discontinued</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="eval">
+  <span class="eyebrow">Evaluation, revised</span>
+  <h2>How to prove the MVP works</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Area</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td>Dataset</td><td>About 20 documents: 12 real with a reviewed "gold" answer, 8 synthetic or tricky (empty, contradictory, injected, very long, non-English, scanned)</td></tr>
+      <tr><td>Ground truth</td><td>Two reviewers merge human and model items and mark each valid or not; report recall and precision</td></tr>
+      <tr><td>Repeat runs</td><td>3 runs per document; report the average and the worst; hard rules must hold on all 3</td></tr>
+      <tr><td>LLM judges</td><td>Each judge checked against about 50 human labels before it's trusted; different prompt or model from the generator</td></tr>
+      <tr><td>Design quality</td><td>Spec match by a separate checker; accessibility and contrast scan; designer rating; side-by-side with human designs</td></tr>
+      <tr><td>Feedback</td><td>Comment classifier accuracy ≥ 90% on 60 labelled comments; share of comments actually fixed</td></tr>
+      <tr><td>Regression runs</td><td>A small API budget for evaluation only, run headless with a pinned model</td></tr>
+      <tr><td>Failure tests</td><td>Kill mid-step, rate limits, usage limit mid-build, corrupted state: must resume with no duplicate screens</td></tr>
+      <tr><td>Pilot</td><td>3–5 real users in weeks 6–8: rounds, time saved, share of requirement items approved unedited</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="week1">
+  <span class="eyebrow">Week 1</span>
+  <h2>Check these before building</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Check</th><th>Decides</th></tr></thead>
+    <tbody>
+      <tr><td>Generate 3 real screens on Stitch and on Figma through MCP</td><td>D-A: one tool or two</td></tr>
+      <tr><td>Consistency across 8 screens: master prompt alone vs. with an approved reference sample</td><td>How step 9 generates screens</td></tr>
+      <tr><td>Field check by HTML parsing vs. vision, on screens with planted defects</td><td>How steps 7 and 9 check screens</td></tr>
+      <tr><td>Sub-agent returns questions → main session asks → agent resumes, including after closing Claude Code</td><td>How questions work</td></tr>
+      <tr><td>Schema validation hook blocks and retries a bad output</td><td>Output safety</td></tr>
+      <tr><td>One full project on Pro and on Max: time and usage limits</td><td>D-B</td></tr>
+      <tr><td>The same plugin folder runs through the Agent SDK with an API key</td><td>The v2 path</td></tr>
+      <tr><td>Stitch's terms and privacy notice, from the primary source</td><td>Whether customer data may use Stitch</td></tr>
+      <tr><td>Quoted citations on 3 real documents: share that appear word for word</td><td>Grounding approach</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="order">
+  <span class="eyebrow">Build order with the recommended cuts</span>
+  <h2>8 weeks, three owners</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Week</th><th>Agents</th><th>Platform</th><th>Product</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Model bake-off, schemas, collect evaluation documents</td><td>Plugin skeleton, MCP connection checks, <code>mvp-state</code> script, week-1 checks</td><td>Review page wireframe</td></tr>
+      <tr><td>2</td><td>Requirement agent with the question round trip</td><td>PDF/DOCX reader, section index, validation hook</td><td>First-run setup check</td></tr>
+      <tr><td>3</td><td>BA agent, screen inventory, coverage check</td><td>Run-log hooks, resume</td><td>Review page: requirement and stories</td></tr>
+      <tr><td>4</td><td>Design skill, Design Prompt agent</td><td>Stitch adapter: generate, poll, export</td><td>Approval flow, diffs</td></tr>
+      <tr><td>5</td><td>Screen checker, feedback classifier</td><td>Sample loop, versioning</td><td>Samples next to their stories</td></tr>
+      <tr><td>6</td><td>Full-UI coverage and consistency checks</td><td>Journey batching, screen budget</td><td>Traceability view, handoff package, CSV export</td></tr>
+      <tr><td>7</td><td colspan="3">Everyone: evaluation runs, injection and failure tests, code-only readiness check</td></tr>
+      <tr><td>8</td><td colspan="3">Buffer and design-partner pilot. Figma starts after this</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="sources">
+  <span class="eyebrow">Sources the reviewers checked</span>
+  <ul class="src">
+    <li>Claude Code sub-agents: <a href="https://code.claude.com/docs/en/sub-agents">code.claude.com/docs/en/sub-agents</a></li>
+    <li>Plugins reference: <a href="https://code.claude.com/docs/en/plugins-reference">code.claude.com/docs/en/plugins-reference</a></li>
+    <li>Agent SDK plugins: <a href="https://code.claude.com/docs/en/agent-sdk/plugins">code.claude.com/docs/en/agent-sdk/plugins</a></li>
+    <li>Agent SDK structured outputs: <a href="https://code.claude.com/docs/en/agent-sdk/structured-outputs">code.claude.com/docs/en/agent-sdk/structured-outputs</a></li>
+    <li>Claude Code legal and compliance: <a href="https://code.claude.com/docs/en/legal-and-compliance">code.claude.com/docs/en/legal-and-compliance</a></li>
+    <li>Claude Code data usage: <a href="https://code.claude.com/docs/en/data-usage">code.claude.com/docs/en/data-usage</a></li>
+    <li>Anthropic consumer terms: <a href="https://www.anthropic.com/legal/consumer-terms">anthropic.com/legal/consumer-terms</a></li>
+    <li>Publishing plugins: <a href="https://code.claude.com/docs/en/plugins/publish">code.claude.com/docs/en/plugins/publish</a></li>
+    <li>Figma MCP server FAQs: <a href="https://help.figma.com/hc/en-us/articles/39252411778583-Figma-MCP-server-FAQs">help.figma.com</a></li>
+    <li>Figma AI content training: <a href="https://help.figma.com/hc/en-us/articles/17725942479127">help.figma.com</a></li>
+    <li>Stitch SDK: <a href="https://github.com/google-labs-code/stitch-sdk">github.com/google-labs-code/stitch-sdk</a></li>
+    <li>Google Labs privacy notice: <a href="https://labs.google/fx/privacy">labs.google/fx/privacy</a> (does not name Stitch; Stitch's own terms still to be read)</li>
+    <li>India DPDP Rules 2025: <a href="https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/nov/doc20251117695301.pdf">pib.gov.in</a></li>
+    <li>US Copyright Office on AI: <a href="https://copyright.gov/ai/">copyright.gov/ai</a></li>
+  </ul>
+</section>
+
+</div>
