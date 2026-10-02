@@ -5,7 +5,7 @@
 | `architecture/` | **Master** architecture (revision 2), one file per part. Wins over everything else (rule R6) |
 | `mvp-flow.md` | The same design as a step-by-step flow, for reading and learning |
 | `adr/` | One file per decision; `README.md` is the index |
-| `contracts/` | File formats and interfaces (frozen in T-09) |
+| `contracts/` | File formats and interfaces (frozen in epic E-03) |
 | `spikes/` | Results of small platform tests |
 | `process/how-we-work-with-claude.md` | The working cycle, prompts, git, testing method |
 | `rules.md` | The fixed rules with reasons and enforcement |

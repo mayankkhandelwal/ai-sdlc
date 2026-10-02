@@ -3,18 +3,54 @@
 This is the working method for every task. It keeps context small, keeps decisions in the repo and
 keeps the agents general.
 
+## 0. The plan system
+
+```
+Lead (planning chat)      keeps the roadmap, sorts the inbox, picks the next task, reads audits
+  └─ Epic (plans/epics/)  one per agent or part, with its owner and acceptor
+       └─ Task (plans/tasks/)   one chat each: sub-task checklist, done-when, proof
+            └─ Audit (plans/audits/)  fresh-context check of the proof
+```
+
+| Role | Who | Does | Never does |
+|---|---|---|---|
+| **Lead** | A planning chat, started when needed | Keeps `plans/roadmap.md`, sorts `plans/inbox.md`, picks ready tasks (`python tools/board.py`), reads audit results | Write product code |
+| **Builder** | A new chat per task | One task: plan, test first, build, record proof | Change other tasks or the plan |
+| **Auditor** | A fresh chat or sub-agent, never the builder | Checks done-when against proof, reruns tests, writes the audit file | Fix things |
+| **Human** | The team | Approves plans, reviews answer keys, accepts epics, decides disagreements | — |
+
+**Status flow:** `todo` → `doing` → `review` → `done`; also `blocked` and `needs-human`.
+
+**Ready rule:** a task can start only when every task it depends on is `done`. `tools/board.py` lists ready tasks.
+
+**Done rule:** every sub-task ticked, proof recorded, tests pass, generality check passes, docs and ADRs
+updated, roadmap and handoff updated, committed. Then an audit.
+
+**One task doing per person** at a time.
+
+**Acceptance:** the epic's acceptor accepts, never only the person who built it. The project lead
+accepts cross-cutting epics and every architecture change.
+
+**New work:** goes into `plans/inbox.md`. The Lead sorts it into a task, an epic, or "no / later".
+Nothing is built straight from the inbox.
+
+**Agent epics** use 7 tasks: design → build v1 and baseline → batch-1 → batch-2 with regression →
+hold-out → audit → accept. Every batch task adds general failure types to `plans/failure-catalog.md`,
+and every later agent's design task reads it first.
+
 ## 1. The cycle for every task
 
 | Step | What happens | Skill or tool to use |
 |---|---|---|
-| 0. Start | New chat. Read `plans/handoff/latest.md` and the task file. Create the task branch | `CLAUDE.md` start steps |
+| 0. Start | New chat. Read `plans/handoff/latest.md` and the task file. Set status `doing`. Create the task branch | `CLAUDE.md` start steps |
 | 1. Understand | Read only the files the task lists. Restate the goal and "done when" in 3 lines | `agent-ready-repo:intent` |
 | 2. Plan | Write a short plan in the task file: steps, files to change, tests. Review it before coding | `superpowers:writing-plans`, `agent-ready-repo:plan-eng-review` |
 | 3. Test first | Write the failing test. For agents: pick the evaluation batch and expected checks | `superpowers:test-driven-development` |
 | 4. Build | The smallest change that passes. One concern at a time | `superpowers:executing-plans`, `agent-ready-repo:implement` |
 | 5. Verify | Run tests. For agents: run the batch, read 2–3 traces in Langfuse | `superpowers:verification-before-completion` |
 | 6. Review | Fresh-context review: a teammate, or a review sub-agent | `code-review`, `superpowers:requesting-code-review` |
-| 7. Finish | Update docs and ADRs if anything changed; run the generality check; commit; update roadmap and handoff; close the chat | `superpowers:finishing-a-development-branch`, `agent-ready-repo:document-release` |
+| 7. Finish | Record proof; update docs and ADRs if anything changed; run the generality check; set status `review`; commit; update roadmap and handoff; close the chat | `superpowers:finishing-a-development-branch`, `agent-ready-repo:document-release` |
+| 8. Audit | A fresh chat or sub-agent audits the task; pass → `done`, fail → back to `doing` | `plans/audits/README.md` |
 
 When something breaks: reproduce it, find the real cause, fix it, and add a test so it can't return
 (`agent-ready-repo:investigate`, `superpowers:systematic-debugging`).
@@ -30,6 +66,18 @@ When something breaks: reproduce it, find the real cause, fix it, and add a test
 
 > We're finishing T-xx. Update its status in `plans/roadmap.md`, rewrite `plans/handoff/latest.md`
 > using the template, run `python tools/check_generality.py`, and commit on the task branch.
+
+**Lead chat**
+
+> You are the Lead. Read `plans/handoff/latest.md`, run `python tools/board.py`, and read `plans/inbox.md`.
+> Sort the inbox, update `plans/roadmap.md`, and tell me which tasks are ready and who should take them.
+> Don't write product code.
+
+**Audit chat**
+
+> You are the Auditor for T-xx.y. Read `plans/audits/README.md` and the task file. Check every done-when
+> item against the proof, rerun the tests and the generality check, and write `plans/audits/T-xx.y.md`.
+> Don't fix anything.
 
 **When the chat feels long or confused**
 

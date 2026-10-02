@@ -1,36 +1,36 @@
 # Handoff
 
 - **Date (UTC):** 2026-10-02
-- **Task:** T-00 · Set up the context library
-- **Branch:** main (first commit)
-- **Who:** Claude, with the project lead
+- **Task:** T-01.2 · Plan system: epics, tasks, audits, inbox
+- **Branch:** main
+- **Who:** Claude (Builder), with the project lead
 
 ## Done in this chat
 
-- Designed the MVP (flow, architecture revision 2, two audits); all decisions accepted
-- Created this repo: `CLAUDE.md`, `docs/rules.md`, working method, architecture as Markdown parts,
-  27 ADR files, contracts index, roadmap with 36 tasks and one file per task
-- Wrote 12 test documents (batch-1, batch-2, hold-out) with draft answer keys and banned terms
-- Added `tools/check_generality.py`, the pre-commit hook, and a Claude setting that blocks reading the hold-out
+- T-01.1: context library (first commit)
+- T-01.2: plans restructured as epic → task → sub-task: 17 epics, 109 tasks, each with sub-task
+  checklist, done-when and a proof section
+- Roles Lead / Builder / Auditor / Human, ready and done rules, inbox, audit procedure, failure catalog
+- `tools/board.py` shows ready tasks and warns about missing proof or audits
 
-## Decided (with ADR links)
+## Decided
 
-- All decisions are in `docs/adr/README.md` (ADR-01 to ADR-27)
-- Fixed rules R1–R11 in `docs/rules.md` (most important: R1 build for any project, R2 hold-out unseen)
+- 3 levels only (epic → task → sub-task); the "main agent" is a Lead chat, not a program
+- Agent epics use 7 tasks, with a baseline before tuning, a batch-1 regression rerun, and the failure catalog
+- Acceptance: the area owner, the project lead for cross-cutting work, never only the builder
 
 ## Next step (exact)
 
-- **T-01 (people):** review the answer keys in `eval/batch-1` and `eval/batch-2`; add 2–4 real documents
-- **T-02 to T-08 (week-1 spikes):** can start in parallel, one chat each
-- First thing in the next chat: "Read `plans/handoff/latest.md` and `plans/tasks/T-02-spike-stitch-from-a-typescript-script.md`"
+- People: **T-01.3** push to a private GitHub repo; **T-01.4** review answer keys and add real documents
+- Builders: **T-02.1 to T-02.7** (week-1 spikes), one chat each, in parallel
+- Start a builder chat with: "Read `plans/handoff/latest.md` and `plans/tasks/T-02.1-spike-stitch-from-a-typescript-script.md`."
 
 ## Problems and open questions
 
-- Answer keys are AI drafts; scores don't count until people review them
-- Stitch account type still to confirm (T-02)
-- Langfuse cloud or self-hosted (T-07)
-- An approved small API budget for evaluation runs (ADR-01 exception, architecture 6.4)
+- Answer keys are AI drafts until T-01.4
+- Stitch account type (T-02.1); Langfuse cloud or self-hosted (T-02.6); evaluation API budget
 
 ## Files changed
 
-- Whole repository (first commit)
+- `plans/` (roadmap, epics, tasks, inbox, audits, failure catalog, handoff), `tools/board.py`,
+  `CLAUDE.md`, `docs/process/how-we-work-with-claude.md`

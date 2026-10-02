@@ -1,9 +1,9 @@
 # Contracts
 
-File formats and interfaces shared between the three owners. They are frozen in task **T-09**,
+File formats and interfaces shared between the three owners. They are frozen in epic **E-03** (tasks T-03.1 to T-03.4),
 after the week-1 spikes, and changed only through a pull request reviewed by all three owners.
 
-| Contract | Defined in architecture | File to write in T-09 |
+| Contract | Defined in architecture | File to write in E-03 |
 |---|---|---|
 | Folder tree and write paths | 2.1 | `folder-tree.md` |
 | State format (`state.json`, lock) | 2.2, 2.10 | `state.schema.json` |

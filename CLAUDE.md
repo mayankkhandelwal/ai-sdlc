@@ -28,8 +28,12 @@ v2 becomes a SaaS product on API keys. Team: 3 engineers, owners of **Agents**, 
 | Need | Read |
 |---|---|
 | Where we stopped, what's next | `plans/handoff/latest.md` |
-| All tasks and status | `plans/roadmap.md` |
-| One task's goal, inputs, done-when | `plans/tasks/T-xx-*.md` |
+| What's ready, doing, in review | `python tools/board.py` |
+| Epics and status | `plans/roadmap.md`, `plans/epics/E-xx-*.md` |
+| One task: sub-tasks, done-when, proof | `plans/tasks/T-xx.y-*.md` |
+| New work waiting to be sorted | `plans/inbox.md` |
+| Audits | `plans/audits/` (procedure in `README.md`) |
+| General failure types found so far | `plans/failure-catalog.md` |
 | How we work with Claude (cycle, skills, git) | `docs/process/how-we-work-with-claude.md` |
 | Rules in full | `docs/rules.md` |
 | Architecture (master), split in parts | `docs/architecture/00-…06-*.md` |
@@ -37,22 +41,34 @@ v2 becomes a SaaS product on API keys. Team: 3 engineers, owners of **Agents**, 
 | Decisions | `docs/adr/` |
 | File formats and interfaces | `docs/contracts/` |
 | Test documents and method | `eval/README.md` (never `eval/holdout/`) |
-| Audits | `docs/audits/` |
+| Expert audits of the design | `docs/audits/` |
 | Original HTML pages (reference only) | `docs/reference/` |
+
+## Roles
+
+Every chat has one role (full method in `docs/process/how-we-work-with-claude.md`):
+- **Lead:** plans, sorts the inbox, picks ready tasks. Never writes product code.
+- **Builder:** does one task and records proof.
+- **Auditor:** fresh context; checks done-when against proof; never fixes.
+- **Human:** reviews answer keys, approves plans, accepts epics, decides disagreements.
+
+Epic → task → sub-task. Agent epics use 7 tasks: design, build v1 + baseline, batch-1, batch-2 + regression,
+hold-out, audit, accept. An epic is accepted by someone who did not build it.
 
 ## Starting a chat
 
 Read `plans/handoff/latest.md`, then the task file named there, then only the files the task lists.
-Say which task you are on before doing anything.
+Say your role and task before doing anything. Set the task's status to `doing`.
 
 ## Ending a chat
 
-1. Update the task's status in `plans/roadmap.md`.
+1. Fill the task's **Proof** section; tick sub-tasks; set status `review` (or `done` for Human tasks).
 2. Rewrite `plans/handoff/latest.md` (done / decided / next / problems).
-3. Run `python tools/check_generality.py`.
+3. Run `python tools/check_generality.py` and `python tools/board.py`.
 4. Commit on the task's branch.
 
 ## Commands
 
 - `python tools/check_generality.py` — blocks test-document terms in agent, skill and prompt files
+- `python tools/board.py [E-xx]` — ready, doing, review, blocked and warnings
 - Git hooks live in `.githooks/` (`git config core.hooksPath .githooks` is set)

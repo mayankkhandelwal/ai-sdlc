@@ -1,10 +1,12 @@
-# T-xx · <title>
+# T-xx.y · <title>
 
-- **Phase:**
+- **Epic:** [E-xx · <epic title>](../epics/E-xx-<slug>.md)
+- **Role:** Builder | Auditor | Human
 - **Owner:**
 - **Depends on:**
 - **Status:** todo
-- **Branch:** `t-xx-<short-name>`
+- **Branch:** `t-xx-y-<short-name>`
+- **Needs from a person:** —
 
 ## Goal
 
@@ -12,28 +14,27 @@
 
 -
 
-## Produce
+## Sub-tasks
 
--
+- [ ]
 
 ## Done when
 
 -
+- Every sub-task ticked, with proof recorded below
+- Tests for this task pass (command and output recorded)
+- `python tools/check_generality.py` passes
+- Docs and ADRs updated if anything changed
+- Roadmap status and handoff updated; work committed on the task branch
 
-## Tests
+## Proof
 
--
+_Commands run, outputs, scores, file paths. The auditor checks this section._
 
-## Skills to use
+## Plan
 
--
+_Written at the start of the task._
 
-## Rules to remember
+## Notes
 
-- R1: nothing specific to any test document in agent, skill or prompt files
-- R2: never open `eval/holdout/`
-- R3: rules first, AI only for judgment
-
-## Plan (filled in step 2 of the cycle)
-
-## Notes and results
+_Findings, general failure types fixed, ADR links._
