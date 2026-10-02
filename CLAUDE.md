@@ -58,14 +58,20 @@ Every chat has one role (full method in `docs/process/how-we-work-with-claude.md
 Epic → task → sub-task. Agent epics use 7 tasks: design, build v1 + baseline, batch-1, batch-2 + regression,
 hold-out, audit, accept. An epic is accepted by someone who did not build it.
 
-## Many chats at once
+## One task at a time
 
-Several chats may run in parallel, one task each. Each task chat works in **its own git worktree**
-in `D:/AI_SDLC_work/worktrees/t-EE-N/` (never inside `D:/AI-Job/` or this repo; locations in
-`tools/paths.json`, names in `docs/process/names.md`) on its own branch, and writes only:
-its task file, its own handoff `plans/handoff/T-xx.y.md`, and the files the task produces.
-**Only the Lead** edits `plans/handoff/latest.md` and `plans/roadmap.md`, and merges branches after
-their audit passes.
+Only **one task runs at a time**. Every chat opens in the main folder `D:/AI-Job/AI_SDLC` (the app's
+worktree box **unticked**); there are no extra worktree folders. Each task works on its own branch
+(`t-EE-N-<short-name>`). The order for every task:
+
+1. **Lead** chat says which task is next and gives the Builder prompt.
+2. **`T-xx.y Builder`** (new chat) creates the branch, does the task, commits, stops.
+3. **`T-xx.y Auditor`** (new chat) checks it and writes PASS or FAIL. FAIL → `T-xx.y Builder fix K`.
+4. **Lead** merges a PASS into `main` and gives the next task.
+
+Never start the next task before the Lead has merged the last one. A Builder writes only its task file,
+its handoff `plans/handoff/T-xx.y.md` and the files the task produces. **Only the Lead** edits
+`plans/handoff/latest.md` and `plans/roadmap.md`, and merges. Names: `docs/process/names.md`.
 
 ## Starting a chat
 
@@ -77,7 +83,7 @@ files the task lists. Say your role and task before doing anything. Set the task
 1. Fill the task's **Proof** section; tick sub-tasks; set status `review` (or `done` for Human tasks).
 2. Write `plans/handoff/T-xx.y.md` from `plans/templates/handoff.md` (done / decided / next / problems).
 3. Run `python tools/check_generality.py` and `python tools/board.py`.
-4. Commit on the task's branch. Then an Auditor chat audits it, and the Lead merges it.
+4. Commit on the task's branch and stay on it. Then an Auditor chat audits it, and the Lead merges it.
 
 ## Commands
 

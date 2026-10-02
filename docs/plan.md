@@ -9,7 +9,7 @@ system meets a live project.
 | Reason | What it means in practice |
 |---|---|
 | **One source of truth** | Every chat and every person reads the same `plans/` files. Nobody works from a memory of a chat |
-| **Parallel work stays safe** | Dependencies are written down, so several chats can work at once without building on unfinished work |
+| **Order stays safe** | Dependencies are written down, so a task never starts on unfinished work. Tasks run one at a time |
 | **Nothing gets forgotten** | Every part of the architecture maps to a task; a task the board doesn't list doesn't happen |
 | **Progress is measurable** | `python tools/board.py` shows done, doing and ready at any moment |
 | **"Done" means proven** | Every task has done-when and proof; audits check it against the plan |
@@ -18,7 +18,7 @@ system meets a live project.
 
 ## The phases
 
-Estimates assume 3 engineers and several Claude chats in parallel. They are a guide; order matters more
+Estimates assume 3 engineers and Claude chats running one task at a time. They are a guide; order matters more
 than dates.
 
 | Phase | Weeks (estimate) | Epics | Result | Live test after it |

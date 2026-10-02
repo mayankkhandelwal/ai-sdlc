@@ -1,40 +1,38 @@
 # Handoff
 
-- **Date (UTC):** 2026-10-02
-- **Last task:** T-01.2 · Plan system: epics, tasks, audits, inbox — **done** (audit 8 PASS)
-- **Branch:** merged into `main`
-- **Who:** Claude (Builder), with the project lead
+- **Date (UTC):** 2026-10-03
+- **Last change:** Working method changed to **one task at a time** (Lead)
+- **Branch:** `main` (no other branches)
+- **Who:** Claude (Lead), with the project lead
 
 ## Done
 
 - T-01.1: context library; audit PASS (`plans/audits/T-01.1.md`)
-- T-01.2: plans as epic → task → sub-task: 17 epics, 112 tasks, each with sub-tasks, done-when, proof and
-  "needs from a person"; roles Lead / Builder / Auditor / Human; inbox; audit procedure; failure catalog
-- `tools/board.py`: ready list; warns about missing proof, missing PASS audits, unknown dependencies, cycles
-- The hold-out set now lives outside the repo (`HOLDOUT_DIR`); the old one is `eval/batch-3`.
-  `tools/guard_holdout.py` stops accidental and obvious access (not a security boundary; limits in R2).
-  `tools/tests/` has 10 passing tests
-- T-01.2 needed 8 audits; the failed ones are kept in `plans/audits/` as a record of what was found
+- T-01.2: plan system: 18 epics, 119 tasks, roles, inbox, audits, failure catalog; audit PASS
+- Running many chats at once was too hard to manage, so it was stopped. The spike chats T-02.2, T-02.4
+  and T-02.7 were archived, their worktrees and branches deleted and their work dropped. Those tasks are
+  `todo` again
+- Every chat now opens in `D:/AI-Job/AI_SDLC`; no worktree folders (`CLAUDE.md`, `docs/process/names.md`,
+  `docs/process/how-we-work-with-claude.md`, start guide)
+- Branch names in all task files are short whole-word names
 
 ## Decided
 
-- 3 levels only; the "main agent" is a Lead chat, not a program
-- Agent epics: 7 tasks with baseline, regression rerun and the failure catalog
-- Every epic's acceptance blocks v1 acceptance; dropped work is `skipped` with an ADR
-- Acceptance by someone who did not build it
-- The hold-out is protected mainly by being outside the repo; the guard catches accidents
+- One task at a time: Lead → `T-xx.y Builder` → `T-xx.y Auditor` → Lead merges → next task
+- Running tasks in parallel again needs an ADR first
+- Kept from the dropped T-02.2 chat: a crashing or timed-out hook lets the call through (in `plans/inbox.md`).
+  The redone T-02.2 must prove it again
 
-## Next (run `python tools/board.py`)
+## Next
 
-- **People:**
-  - T-01.3: push the repo to a private GitHub repo
-  - T-01.4: review answer keys in batch-1, batch-2 and batch-3, and add 2–4 real documents
-  - T-01.5: write the new hold-out set, in a Claude session started outside this project
-- **Builders:** T-02.1 to T-02.7, the week-1 spikes, one chat each, from `main`
-- Start a builder chat with: "Read `plans/handoff/latest.md` and `plans/tasks/T-02.1-spike-stitch-from-a-typescript-script.md`."
+- **Builder, first task:** T-02.2 (guard hook spike). It needs nothing from a person
+- Then, one at a time: T-02.4, T-02.7; then T-02.1, T-02.3, T-02.5, T-02.6 once their keys and files are
+  ready; then T-02.8
+- **People, any time:** T-01.3 (protect `main`, invite owners), T-01.4 (review answer keys, add real
+  documents), T-01.5 (write the hold-out outside the project)
 
 ## Problems and open questions
 
 - Answer keys are AI drafts until T-01.4
 - Stitch account type (T-02.1); Langfuse cloud or self-hosted (T-02.6); evaluation API budget
-- Four empty folders may exist in the default hold-out location from a blocked attempt (see T-01.5 notes)
+- An old empty hold-out folder may still exist in `D:/AI-Job/`; delete it by hand (T-01.5)

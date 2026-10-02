@@ -3,14 +3,16 @@
 One naming rule for everything, so nothing gets lost or mixed up. `EE` = epic number, `N` = task number
 (task `T-02.2` → `EE` = 02, `N` = 2). Folder locations come from `tools/paths.json`.
 
+We run **one task at a time**, so every chat opens in the main project folder. There are no task
+worktree folders (if we ever run tasks in parallel again, that needs an ADR first).
+
 ## Folders
 
-| What | Name and place | Example |
-|---|---|---|
-| Main project (main branch, Lead chat) | `D:/AI-Job/AI_SDLC/` | — |
-| Work folder for this project's extras | `D:/AI_SDLC_work/` (outside `D:/AI-Job`) | — |
-| One worktree per task | `D:/AI_SDLC_work/worktrees/t-EE-N/` | `D:/AI_SDLC_work/worktrees/t-02-2/` |
-| Hold-out set (no chat opens it) | `D:/AI_SDLC_work/AI_SDLC_holdout/` | — |
+| What | Name and place |
+|---|---|
+| Main project: every chat opens here | `D:/AI-Job/AI_SDLC/` |
+| Work folder for this project's extras | `D:/AI_SDLC_work/` (outside `D:/AI-Job`) |
+| Hold-out set (no project chat opens it) | `D:/AI_SDLC_work/AI_SDLC_holdout/` |
 
 Nothing for this project is created inside `D:/AI-Job/` except the main project folder, and nothing
 extra is created inside the main project folder.
@@ -19,9 +21,9 @@ extra is created inside the main project folder.
 
 | What | Name | Example |
 |---|---|---|
-| Task branch | `t-EE-N-<short-name>` | `t-02-2-spike-guard-hook` |
-| Create a task worktree | `git worktree add D:/AI_SDLC_work/worktrees/t-EE-N -b t-EE-N-<short-name> main` | see the start guide |
-| Remove it after merge | `git worktree remove D:/AI_SDLC_work/worktrees/t-EE-N` | — |
+| Task branch | `t-EE-N-<short-name>` (the name in the task file) | `t-02-2-spike-guard-hook` |
+| Create it (Builder, at start) | `git switch main` then `git switch -c t-EE-N-<short-name>` | — |
+| Merge it (Lead, after PASS) | `git switch main` then `git merge --no-ff t-EE-N-<short-name>` | — |
 | Commit message | What changed, in general words; never a test document or client name | "Critic now asks about error paths in multi-step approvals" |
 
 ## Files
@@ -41,20 +43,16 @@ extra is created inside the main project folder.
 
 ## Chats
 
-**Opening a task chat in the Claude app:** set the folder to the task's worktree
-(`D:/AI_SDLC_work/worktrees/t-EE-N`) and leave the app's **worktree** box **unticked**. Ticking it makes
-the app create its own copy inside `D:/AI-Job/AI_SDLC/.claude/worktrees/`, inside the project, which is
-exactly what we avoid. (That folder is in `.gitignore` as a safety net.) The Lead chat uses the folder
-`D:/AI-Job/AI_SDLC`, also with the box unticked.
+**Opening any chat in the Claude app:** folder `D:/AI-Job/AI_SDLC`, the app's **worktree** box
+**unticked** (ticking it makes the app create a copy inside the project; `.claude/worktrees/` is in
+`.gitignore` as a safety net). Name the chat as soon as it opens.
 
-Give every Claude chat a name when you open it, so you always know which window does what.
-
-| Chat | Name | Opened in |
+| Chat | Name | When |
 |---|---|---|
-| Lead | `Lead` | `D:/AI-Job/AI_SDLC/` |
-| Builder for a task | `T-EE.N Builder` | its worktree folder |
-| Auditor for a task | `T-EE.N Auditor` | the same worktree folder, new session |
-| Fix after a failed audit | `T-EE.N Builder fix K` | the same worktree folder, new session |
-| Hold-out writer | `Hold-out writer` | the hold-out folder, never the project |
+| Lead | `Lead` | Always open; says the next task, merges after PASS |
+| Builder for a task | `T-EE.N Builder` | New chat for each task |
+| Auditor for a task | `T-EE.N Auditor` | New chat after the Builder finishes |
+| Fix after a failed audit | `T-EE.N Builder fix K` | New chat after audit K fails |
+| Hold-out writer | `Hold-out writer` | Opened in the hold-out folder, never the project |
 
-Example: three spike chats open at once are named `T-02.2 Builder`, `T-02.4 Builder`, `T-02.7 Builder`.
+Close (archive) the Builder and Auditor chats once the Lead has merged the task.

@@ -15,7 +15,7 @@ Lead (planning chat)      keeps the roadmap, sorts the inbox, picks the next tas
 | Role | Who | Does | Never does |
 |---|---|---|---|
 | **Lead** | A planning chat, started when needed | Keeps `plans/roadmap.md`, sorts `plans/inbox.md`, picks ready tasks (`python tools/board.py`), reads audit results | Write product code |
-| **Builder** | A new chat per task | One task: plan, test first, build, record proof | Change other tasks or the plan |
+| **Builder** | A new chat per task, one task at a time | One task: plan, test first, build, record proof | Change other tasks or the plan |
 | **Auditor** | A fresh chat or sub-agent, never the builder | Checks done-when against proof, reruns tests, writes the audit file | Fix things |
 | **Human** | The team | Approves plans, reviews answer keys, accepts epics, decides disagreements | — |
 
@@ -61,30 +61,31 @@ When something breaks: reproduce it, find the real cause, fix it, and add a test
 
 ## 2. Prompts to paste
 
-**Start of a task chat** (in the task's own worktree folder)
+**Start of a task chat** (new chat in `D:/AI-Job/AI_SDLC`, named `T-xx.y Builder`)
 
-> You are the Builder for T-xx.y. Read `plans/handoff/latest.md`, `plans/tasks/T-xx.y-….md`, and
+> You are the Builder for T-xx.y. Run `git switch main`, then create the task's branch from its task file
+> with `git switch -c <branch>`. Read `plans/handoff/latest.md`, `plans/tasks/T-xx.y-….md`, and
 > `plans/handoff/T-xx.y.md` if it exists. Then read only the files that task lists. Tell me the goal, the
 > done-when and your plan before changing anything.
 
 **End of a task chat**
 
 > We're finishing T-xx.y. Fill its Proof, set its status to review, write `plans/handoff/T-xx.y.md` from the
-> template, run `python tools/check_generality.py`, and commit on the task branch. Don't edit
+> template, run `python tools/check_generality.py`, and commit on the task branch. Stay on the branch. Don't edit
 > `plans/roadmap.md` or `plans/handoff/latest.md`; the Lead does that.
 
-**Lead chat** (in the main repo folder)
+**Lead chat** (named `Lead`, kept open)
 
-> You are the Lead. Read `plans/handoff/latest.md` and every `plans/handoff/T-*.md`, run
-> `python tools/board.py`, and read `plans/inbox.md`. Merge branches whose audit passed, sort the inbox,
-> update `plans/roadmap.md` and `plans/handoff/latest.md`, and tell me which tasks are ready and who should
-> take them. Don't write product code.
+> You are the Lead. Read `plans/handoff/latest.md`, run `python tools/board.py`, and read `plans/inbox.md`.
+> If the last task's audit passed, merge its branch into `main`, mark it done, update `plans/roadmap.md` and
+> `plans/handoff/latest.md`, and commit. Then tell me the one next task and give me its Builder prompt.
+> Don't write product code.
 
-**Audit chat**
+**Audit chat** (new chat, named `T-xx.y Auditor`, after the Builder finished)
 
-> You are the Auditor for T-xx.y. Read `plans/audits/README.md` and the task file. Check every done-when
+> You are the Auditor for T-xx.y. Stay on the current branch. Read `plans/audits/README.md` and the task file. Check every done-when
 > item against the proof, rerun the tests and the generality check, and write `plans/audits/T-xx.y.md`.
-> Don't fix anything.
+> Don't fix anything. Commit the audit file on this branch.
 
 **When the chat feels long or confused**
 
@@ -103,20 +104,12 @@ When something breaks: reproduce it, find the real cause, fix it, and add a test
 
 - `main` is always working. No direct commits to `main` except the context library itself.
 - One branch per task: `t-07-2-build-v1-and-baseline`.
-- Parallel work: each task chat runs in its own git worktree in `D:/AI_SDLC_work/worktrees/`, so
-  sessions never touch each other's files (`superpowers:using-git-worktrees`). Never put worktrees in
-  `D:/AI-Job/` (other projects live there) or inside this repo (tools would scan them twice and a copy
-  could get committed). Locations are in `tools/paths.json`; names in `docs/process/names.md`.
-
-  ```
-  git worktree add D:/AI_SDLC_work/worktrees/t-02-2 -b t-02-2-spike-guard-hook main
-  ```
-
-  Then open a new Claude session in that folder and name the chat `T-02.2 Builder`.
-  Remove the worktree after the merge: `git worktree remove D:/AI_SDLC_work/worktrees/t-02-2`.
-- Parallel chats write only their own task file, their own handoff (`plans/handoff/T-xx.y.md`) and the
-  files their task produces. Only the Lead edits `plans/roadmap.md` and `plans/handoff/latest.md`.
-  That way two chats never change the same file.
+- **One task at a time.** Every chat opens in `D:/AI-Job/AI_SDLC` (the app's worktree box unticked).
+  The Builder creates the task branch there; the Auditor works on the same branch; the Lead merges it
+  into `main` after PASS. The next task starts only after that merge. No worktree folders are used
+  (running tasks in parallel again would need an ADR). Names are in `docs/process/names.md`.
+- A Builder writes only its own task file, its own handoff (`plans/handoff/T-xx.y.md`) and the files its
+  task produces. Only the Lead edits `plans/roadmap.md` and `plans/handoff/latest.md`.
 - Merge through a pull request, reviewed by another owner. The pre-commit hook runs the
   generality check.
 - Commit messages say the general problem fixed, not the test document: "Critic now asks about
