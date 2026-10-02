@@ -38,21 +38,31 @@ can always be worked around, so the main protection is structural: the files are
 **Enforced by:**
 - The hold-out folder is outside the repo, so building chats have no reason or easy way to reach it.
 - A project hook (`tools/guard_holdout.py`, set in `.claude/settings.json` for every tool) blocks:
-  any call that points at the hold-out folder (reading, searching, listing or writing); any command that
-  mentions the `HOLDOUT_DIR` variable; Grep or Glob rooted at a parent of the hold-out folder; and
-  recursive shell commands that reach a parent folder (`..`). The one exception is a plain
-  `python tools/eval_score.py <args>` call with no chaining, pipes, redirects, substitution or variable.
-  If the hook can't check a call, the call is blocked (fail closed).
+  - any call whose text names the hold-out folder (reading, searching, listing or writing);
+  - any command that mentions the `HOLDOUT_DIR` variable;
+  - Grep or Glob whose `path` is the hold-out's parent folder or above;
+  - shell commands using common recursive flags or tools (`-r`, `--recursive`, `rg`, `find`, `-Recurse`,
+    `tar`, `zip`, `robocopy`, `xcopy`, `dir /s`) together with `..` or the parent's absolute path.
+
+  The one exception is a plain `python tools/eval_score.py <args>` call, run from the repo folder, with no
+  chaining, pipes, redirects, substitution or variable. If the hook can't check a call, it is blocked
+  (fail closed).
 - `tools/check_generality.py` reads the hold-out's banned terms but never prints them; a match shows as
   `<hold-out term>`.
 - Tests in `tools/tests/` cover the guard's blocked and allowed cases.
 - `HOLDOUT_DIR` must be set in the environment Claude Code starts from (so the hook sees it), or the
   hold-out must be in the default location the hook expects (a sibling folder of the repo).
 
-**Known limits:** a hook only sees the text of a call. Code that builds the folder name from pieces,
-wildcards that happen to match it, or a whole-drive search written another way, are not caught.
-Teammates are not technically blocked. These are covered by the folder being outside the repo and by
-agreement.
+**Known limits (accepted):** a hook only sees the text of a call, so it cannot catch everything:
+- **Listings of parent folders** written in other ways (for example `dir .. /s`, `tree`, `du`,
+  `Get-ChildItem .. -Depth`, `cd` to the parent then a recursive listing, or a Glob pattern with `../` and
+  no path) can show the hold-out's **file and folder names**. They do not show content.
+- **Code that builds the folder name from pieces**, or wildcards that happen to match it, can reach it.
+- **Teammates** are not technically blocked.
+
+These are covered by the folder being outside the repo, by the folder and file names revealing nothing
+useful, and by agreement. Reading hold-out **content** through any tool requires naming the folder or the
+variable, which the hook blocks.
 
 If hold-out content is ever seen, those documents move into the repo as another batch (as the first
 hold-out did, now `batch-3`) and a new hold-out set is written.

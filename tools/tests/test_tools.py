@@ -65,6 +65,10 @@ class GuardHoldout(unittest.TestCase):
                            capture_output=True, text=True)
         self.assertEqual(p.returncode, 2)
 
+    def test_scorer_only_from_repo(self):
+        self.assertEqual(guard("Bash", cwd=str(TOOLS.parent), command=f"python tools/eval_score.py --set {H}"), 0)
+        self.assertEqual(guard("Bash", cwd=str(TOOLS.parent.parent), command=f"python tools/eval_score.py --set {H}"), 2)
+
     def test_allows_scorer_and_unrelated(self):
         self.assertEqual(guard("Bash", command=f"python tools/eval_score.py --set {H} --runs 3"), 0)
         self.assertEqual(guard("Read", file_path="docs/rules.md"), 0)

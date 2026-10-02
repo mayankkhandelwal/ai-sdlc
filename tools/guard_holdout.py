@@ -78,7 +78,8 @@ def blocked(tool, tool_input, cwd):
             return True
         if not mentions_holdout(cmd):
             return False
-        return not (SCORER.match(norm(cmd)) and not UNSAFE.search(cmd) and not ENV_NAME.search(cmd))
+        in_repo = cwd is None or norm(pathlib.Path(cwd).resolve()).rstrip("/") == norm(REPO).rstrip("/")
+        return not (in_repo and SCORER.match(norm(cmd)) and not UNSAFE.search(cmd) and not ENV_NAME.search(cmd))
     return mentions_holdout(json.dumps(tool_input))
 
 

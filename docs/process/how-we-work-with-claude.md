@@ -113,9 +113,9 @@ Full method in `eval/README.md`. In short:
 
 1. Build the agent. Run it on **batch-1** (4 documents × 3 runs). Fix the general causes.
 2. Run on **batch-2** (4 new documents × 3 runs). Shows whether the fixes were general. Fix again.
-3. Run once on the **hold-out** (4 unseen documents × 3 runs). Pass = done.
-   Fail = back to step 2 with fresh documents; the hold-out documents that were looked at move to
-   batch-2 and new hold-out documents are written.
+3. Run once on the **hold-out** with `python tools/eval_score.py` (4 unseen documents × 3 runs; summary
+   only). Pass = done. Fail = back to step 2. If hold-out content was ever seen, those documents move into
+   the repo as a new batch and a new hold-out set is written outside the repo (rule R2).
 
 Before every fix, ask: "Would this help a document from a completely different industry?"
 
