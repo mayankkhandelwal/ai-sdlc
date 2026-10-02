@@ -71,4 +71,6 @@ Say your role and task before doing anything. Set the task's status to `doing`.
 
 - `python tools/check_generality.py` — blocks test-document terms in agent, skill and prompt files
 - `python tools/board.py [E-xx]` — ready, doing, review, blocked and warnings
+- `python -m unittest discover -s tools/tests` — tests for the plan and safety tools
+- `tools/guard_holdout.py` runs automatically as a project hook (rule R2); `.rgignore` hides the hold-out from searches
 - Git hooks live in `.githooks/` (`git config core.hooksPath .githooks` is set)

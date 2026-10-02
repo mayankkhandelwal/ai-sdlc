@@ -99,7 +99,7 @@ When something breaks: reproduce it, find the real cause, fix it, and add a test
 ## 4. Git
 
 - `main` is always working. No direct commits to `main` except the context library itself.
-- One branch per task: `t-18-requirement-agent`.
+- One branch per task: `t-07-2-build-v1-and-baseline`.
 - Parallel work: each owner uses their own git worktree (`superpowers:using-git-worktrees`), so
   sessions never touch each other's files.
 - Merge through a pull request, reviewed by another owner. The pre-commit hook runs the

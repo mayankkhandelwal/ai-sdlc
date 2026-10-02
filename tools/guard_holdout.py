@@ -3,8 +3,10 @@
 Blocks tools that would open or list the hold-out folder:
 - Read, Edit, Write: when file_path points into it
 - Grep, Glob: when path or pattern points into it
-- Bash: when the command names it, except the scoring script and git
-  commands that don't print file content (add, commit, status, mv, rm, log --oneline)
+- Bash: when the command names it, except a single scoring-script call, a single
+  git command that doesn't print file content (add, status, mv, rm, log --oneline),
+  or a git commit whose only mention is inside its -m message. Chained commands,
+  pipes and redirects are never treated as safe.
 
 Text that only mentions the folder (docs, commit messages) is allowed.
 Exit code 2 blocks the call and shows the reason.
@@ -15,10 +17,21 @@ import sys
 
 HOLDOUT = re.compile(r"eval[\\/]+hold" + r"out", re.IGNORECASE)
 SAFE_BASH = re.compile(
-    r"^\s*(cd\s+\S+\s*&&\s*)?(python3?\s+\S*tools[\\/]+eval_score\.py\b"
-    r"|git\s+(add|commit|status|mv|rm|log\s+--oneline)\b)")
+    r"^\s*(python3?\s+\S*tools[\\/]+eval_score\.py\b"
+    r"|git\s+(add|status|mv|rm|log\s+--oneline)\b)")
+# Any of these means more than one command, a pipe or a redirect: never "safe".
+CHAINING = re.compile(r"[;&|`<>\n]|\$\(")
 MESSAGE = ("Blocked by rule R2: the hold-out set must stay unseen. "
            "Only tools/eval_score.py may read it (summary scores only).")
+
+
+def git_commit_message_only(cmd):
+    """A single `git commit -m "..."` whose only mention of the folder is inside the message."""
+    m = re.match(r'^\s*git\s+commit\b(.*)$', cmd, re.DOTALL)
+    if not m:
+        return False
+    outside = re.sub(r'(-m|--message)\s+("([^"\\]|\\.)*"|\'[^\']*\')', "", m.group(1))
+    return not HOLDOUT.search(outside) and not CHAINING.search(outside)
 
 
 def touches_holdout(tool, tool_input):
@@ -28,7 +41,11 @@ def touches_holdout(tool, tool_input):
         return any(HOLDOUT.search(str(tool_input.get(k, ""))) for k in ("path", "pattern", "glob"))
     if tool in ("Bash", "PowerShell"):
         cmd = str(tool_input.get("command", ""))
-        return bool(HOLDOUT.search(cmd)) and not SAFE_BASH.search(cmd)
+        if not HOLDOUT.search(cmd):
+            return False
+        if git_commit_message_only(cmd):
+            return False
+        return not (SAFE_BASH.search(cmd) and not CHAINING.search(cmd))
     return False
 
 
