@@ -70,7 +70,8 @@ class GuardHoldout(unittest.TestCase):
         self.assertEqual(guard("Bash", cwd=str(TOOLS.parent.parent), command=f"python tools/eval_score.py --set {H}"), 2)
 
     def test_allows_scorer_and_unrelated(self):
-        self.assertEqual(guard("Bash", command=f"python tools/eval_score.py --set {H} --runs 3"), 0)
+        self.assertEqual(guard("Bash", cwd=str(TOOLS.parent), command=f"python tools/eval_score.py --set {H} --runs 3"), 0)
+        self.assertEqual(guard("Bash", command=f"python tools/eval_score.py --set {H}"), 2)  # no cwd: not allowed
         self.assertEqual(guard("Read", file_path="docs/rules.md"), 0)
         self.assertEqual(guard("Edit", file_path="docs/rules.md", old_string="a", new_string="b"), 0)
         self.assertEqual(guard("Bash", command="ls eval/batch-1"), 0)

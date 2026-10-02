@@ -16,11 +16,12 @@ Also blocked: any mention of the HOLDOUT_DIR variable in a command, Grep/Glob
 rooted at a parent of the hold-out folder, and recursive shell commands that
 reach a parent folder ("..").
 
-Known limits (documented in docs/rules.md, R2): a hook only sees the text of a
-call. Code that builds the folder name from pieces, wildcards that happen to
-match it, or a whole-drive search written in another way, are not caught.
-The folder being outside the repo is the main protection. If the call can't be
-parsed or checked, it is blocked (fail closed).
+This guard stops accidental and obvious access; it is not a security boundary.
+Known limits (docs/rules.md, R2): a hook only sees the text of a call, so code
+or commands that walk parent folders without naming the hold-out, or that build
+its name from pieces, can still list and read it. The folder being outside the
+repo, and the rule every chat follows, are the main protection. If a call can't
+be parsed or checked, it is blocked (fail closed).
 """
 import json
 import os
@@ -78,7 +79,7 @@ def blocked(tool, tool_input, cwd):
             return True
         if not mentions_holdout(cmd):
             return False
-        in_repo = cwd is None or norm(pathlib.Path(cwd).resolve()).rstrip("/") == norm(REPO).rstrip("/")
+        in_repo = cwd is not None and norm(pathlib.Path(cwd).resolve()).rstrip("/") == norm(REPO).rstrip("/")
         return not (in_repo and SCORER.match(norm(cmd)) and not UNSAFE.search(cmd) and not ENV_NAME.search(cmd))
     return mentions_holdout(json.dumps(tool_input))
 

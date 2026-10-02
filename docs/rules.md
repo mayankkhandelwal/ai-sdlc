@@ -53,16 +53,22 @@ can always be worked around, so the main protection is structural: the files are
 - `HOLDOUT_DIR` must be set in the environment Claude Code starts from (so the hook sees it), or the
   hold-out must be in the default location the hook expects (a sibling folder of the repo).
 
+**What the guard is for:** it stops **accidental and obvious** access, the kind that happens when a chat
+follows a habit or a stray instruction. It is not a security boundary against **deliberate** access.
+
 **Known limits (accepted):** a hook only sees the text of a call, so it cannot catch everything:
-- **Listings of parent folders** written in other ways (for example `dir .. /s`, `tree`, `du`,
-  `Get-ChildItem .. -Depth`, `cd` to the parent then a recursive listing, or a Glob pattern with `../` and
-  no path) can show the hold-out's **file and folder names**. They do not show content.
+- **Commands or code that walk parent folders** without naming the hold-out (for example
+  `Get-ChildItem .. -Depth 3 -File | Get-Content`, a Python `os.walk('..')` loop, `findstr /s`, `for /r`,
+  other recursive flags, or `cd` to the parent first) can list the hold-out's file names **and read its
+  content**.
 - **Code that builds the folder name from pieces**, or wildcards that happen to match it, can reach it.
 - **Teammates** are not technically blocked.
 
-These are covered by the folder being outside the repo, by the folder and file names revealing nothing
-useful, and by agreement. Reading hold-out **content** through any tool requires naming the folder or the
-variable, which the hook blocks.
+These are covered by:
+- the folder being outside the repo, so no task ever needs to look near it;
+- every chat following this rule (it is in `CLAUDE.md`, which every chat loads);
+- audits checking that no task's commands walked parent folders;
+- if a breach is ever suspected, treating the hold-out as seen and writing a new one.
 
 If hold-out content is ever seen, those documents move into the repo as another batch (as the first
 hold-out did, now `batch-3`) and a new hold-out set is written.

@@ -11,9 +11,9 @@
 - T-01.2: plans as epic → task → sub-task: 17 epics, 112 tasks, each with sub-tasks, done-when, proof
   and "needs from a person"; roles Lead / Builder / Auditor / Human; inbox; audit procedure; failure catalog
 - `tools/board.py`: ready list; warns about missing proof, missing PASS audits, unknown dependencies, cycles
-- Six audits of T-01.2 failed (8, 4, 3 findings; 7 guard bypasses out of 51; audit 5: 2 blocking + 6 minor; audit 6: 3 items). All fixed, or stated in R2 as accepted limits (name-only listings of parent folders)
+- Seven audits of T-01.2 failed (8, 4, 3 findings; 7 guard bypasses out of 51; then 2+6, 3, and one overclaim). All fixed, or stated honestly in R2: the guard stops accidental and obvious access, not deliberate code that walks parent folders
 - **Structural change for rule R2:** the hold-out set now lives outside the repo (`HOLDOUT_DIR`). The old
-  in-repo set is kept as `eval/batch-3`. `tools/guard_holdout.py` blocks every tool call that points at the
+  in-repo set is kept as `eval/batch-3`. `tools/guard_holdout.py` blocks obvious and accidental tool calls that point at the
   outside folder, including writes; `tools/tests/` has 10 passing tests
 - New task **T-01.5**: a person writes the new hold-out in a separate Claude session started outside this project
 
