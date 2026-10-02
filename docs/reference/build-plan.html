@@ -1,0 +1,281 @@
+<title>MVP Build Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: plan document. Why one plan, an 18-week timeline with live-test markers, test types, the four live tests, checklists, milestones, how the plan changes. */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --sunk:#ecede9; --line:#d7d9d2;
+  --fg:#1b1f1a; --muted:#5b6358; --accent:#1f6f4a; --accent-bg:#e2f1e8;
+  --live:#b3541e; --live-bg:#fbe9dd;
+  --bar:#2f55c8; --bar-bg:#e6ecfb;
+  --done:#6b7280; --done-bg:#e5e7eb;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121512; --surface:#1a1e1a; --sunk:#222722; --line:#323831;
+    --fg:#e5e9e3; --muted:#a2aa9f; --accent:#6fd3a0; --accent-bg:#183326;
+    --live:#ffaa72; --live-bg:#3d2414;
+    --bar:#93acff; --bar-bg:#1f2847;
+    --done:#a3a9b4; --done-bg:#2b2f36;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121512; --surface:#1a1e1a; --sunk:#222722; --line:#323831;
+  --fg:#e5e9e3; --muted:#a2aa9f; --accent:#6fd3a0; --accent-bg:#183326;
+  --live:#ffaa72; --live-bg:#3d2414;
+  --bar:#93acff; --bar-bg:#1f2847;
+  --done:#a3a9b4; --done-bg:#2b2f36;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.58;padding-inline:20px;padding-block:0 72px}
+.wrap{max-width:960px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3rem);font-weight:700}
+h2{font-size:1.75rem;font-weight:700}
+h3{font-size:1.12rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+code{font-family:var(--f-mono);font-size:.86em}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:1.1rem;color:var(--muted);max-width:68ch}
+.note{font-size:.92rem;color:var(--muted);max-width:72ch}
+header.top{padding-block:48px 26px;display:grid;gap:14px;border-bottom:1px solid var(--line)}
+section{padding-block:40px 6px;display:grid;gap:16px}
+.toc{display:flex;flex-wrap:wrap;gap:6px}
+.toc a{text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);padding:5px 11px;border-radius:7px;font-size:.88rem}
+.toc a:hover{border-color:var(--accent)}
+
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start;min-width:0}
+.card p,.card li{font-size:.9rem}
+.card ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
+
+/* timeline */
+.tl-scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.tl{display:grid;grid-template-columns:150px repeat(19,minmax(26px,1fr));min-width:780px;row-gap:6px;align-items:center}
+.tl .wk{font-family:var(--f-mono);font-size:.68rem;color:var(--muted);text-align:center}
+.tl .lab{font-size:.84rem;padding-right:8px;line-height:1.2}
+.tl .lab b{display:block;font-family:var(--f-display);font-size:.95rem}
+.tl .lab span{font-family:var(--f-mono);font-size:.7rem;color:var(--muted)}
+.tl .bar{height:22px;border-radius:6px;background:var(--bar-bg);border:1px solid var(--bar);display:flex;align-items:center;padding-inline:6px;font-family:var(--f-mono);font-size:.66rem;color:var(--bar);white-space:nowrap;overflow:hidden}
+.tl .bar.done{background:var(--done-bg);border-color:var(--done);color:var(--done)}
+.tl .live{height:22px;border-radius:999px;background:var(--live);color:var(--bg);display:grid;place-items:center;font-family:var(--f-mono);font-size:.68rem;font-weight:500}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.84rem;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:10px;border-radius:3px;vertical-align:middle;margin-right:5px}
+
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.9rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.m{font-family:var(--f-mono);font-size:.82rem;white-space:nowrap}
+
+.lt{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--live);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.lt .id{font-family:var(--f-mono);font-size:.8rem;color:var(--live);font-weight:500}
+.lt h3{font-size:1.1rem}
+.lt dl{margin:0;display:grid;gap:6px}
+.lt dt{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.lt dd{margin:0;font-size:.88rem}
+
+.modes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.modes span.s{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.88rem;display:grid;gap:2px}
+.modes span.s b{font-family:var(--f-display)}
+.modes span.a{color:var(--muted);font-family:var(--f-mono)}
+
+@media (max-width:820px){
+  .grid3,.grid4{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .grid3,.grid4{grid-template-columns:1fr}
+}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">AI-SDLC · Design-First MVP · v1</span>
+  <h1>MVP Build Plan</h1>
+  <p class="lead">The one plan for building v1: why there is one plan, the 8 phases over about 18 weeks, when each kind of testing happens, and the four points where the system is tested on live projects before the final pilot.</p>
+  <div class="toc"><a href="#why">Why one plan</a><a href="#timeline">Timeline</a><a href="#testing">When testing happens</a><a href="#live">Live project tests</a><a href="#rules">Live test rules</a><a href="#milestones">Milestones</a><a href="#change">How the plan changes</a></div>
+  <p class="note">Source of truth: <code>docs/plan.md</code> and <code>plans/</code> in the repo. Tasks: 18 epics, 119 tasks. See what's ready with <code>python tools/board.py</code>.</p>
+</header>
+
+<section id="why">
+  <span class="eyebrow">Why one plan</span>
+  <h2>Seven reasons</h2>
+  <div class="grid3">
+    <div class="card"><h3>One source of truth</h3><p>Every chat and every person reads the same plan files. Nobody works from what they remember of a chat.</p></div>
+    <div class="card"><h3>Safe parallel work</h3><p>Dependencies are written down, so several chats can work at once without building on unfinished work.</p></div>
+    <div class="card"><h3>Nothing forgotten</h3><p>Every part of the architecture maps to a task. If the board doesn't list it, it doesn't happen.</p></div>
+    <div class="card"><h3>Progress you can see</h3><p>The board shows done, doing and ready at any moment.</p></div>
+    <div class="card"><h3>"Done" means proven</h3><p>Every task has done-when and proof. A fresh audit checks the proof against the plan.</p></div>
+    <div class="card"><h3>Controlled change</h3><p>New ideas go to the inbox first; the Lead turns them into tasks. Nothing gets built on the side.</p></div>
+  </div>
+  <p class="note">And the seventh: <b>the plan can change.</b> When a spike, an audit or a live test proves something wrong, the plan and the decision records change together, in one commit.</p>
+</section>
+
+<section id="timeline">
+  <span class="eyebrow">Timeline (estimates)</span>
+  <h2>8 phases, 4 live tests</h2>
+  <div class="legend"><span><i style="background:var(--done-bg);border:1px solid var(--done)"></i>Done</span><span><i style="background:var(--bar-bg);border:1px solid var(--bar)"></i>Build phase</span><span><i style="background:var(--live)"></i>Live project test</span></div>
+  <div class="tl-scroll">
+    <div class="tl">
+      <div></div>
+      <div class="wk">0</div><div class="wk">1</div><div class="wk">2</div><div class="wk">3</div><div class="wk">4</div><div class="wk">5</div><div class="wk">6</div><div class="wk">7</div><div class="wk">8</div><div class="wk">9</div><div class="wk">10</div><div class="wk">11</div><div class="wk">12</div><div class="wk">13</div><div class="wk">14</div><div class="wk">15</div><div class="wk">16</div><div class="wk">17</div><div class="wk">18</div>
+
+      <div class="lab"><b>0 · Setup</b><span>E-01</span></div>
+      <div class="bar done" style="grid-column:2 / span 1">done</div>
+
+      <div class="lab"><b>1 · Spikes</b><span>E-02</span></div>
+      <div class="bar" style="grid-column:3 / span 2">facts</div>
+
+      <div class="lab"><b>2 · Contracts</b><span>E-03</span></div>
+      <div class="bar" style="grid-column:4 / span 1">formats</div>
+
+      <div class="lab"><b>3 · Foundations</b><span>E-04, E-05</span></div>
+      <div class="bar" style="grid-column:5 / span 2">plugin, state, checks</div>
+
+      <div class="lab"><b>4 · Skeleton</b><span>E-06</span></div>
+      <div class="bar" style="grid-column:7 / span 1">thin</div>
+      <div class="live" style="grid-column:8 / span 1">L1</div>
+
+      <div class="lab"><b>5 · Understand</b><span>E-07 to E-11</span></div>
+      <div class="bar" style="grid-column:8 / span 4">requirement, critic, questions, stories, review</div>
+      <div class="live" style="grid-column:12 / span 1">L2</div>
+
+      <div class="lab"><b>6 · Design</b><span>E-12 to E-15</span></div>
+      <div class="bar" style="grid-column:12 / span 4">messages, Stitch, samples, Figma gate</div>
+      <div class="live" style="grid-column:16 / span 1">L3</div>
+
+      <div class="lab"><b>7 · Full flow</b><span>E-16</span></div>
+      <div class="bar" style="grid-column:16 / span 2">full UI, package</div>
+      <div class="live" style="grid-column:18 / span 1">L4</div>
+
+      <div class="lab"><b>8 · Evaluate + pilot</b><span>E-17</span></div>
+      <div class="bar" style="grid-column:18 / span 3">evaluation, red-team, pilot</div>
+    </div>
+  </div>
+  <p class="note">The numbers assume 3 engineers and several Claude chats in parallel. Phases overlap where dependencies allow; the board decides what can start. The order matters more than the dates.</p>
+</section>
+
+<section id="testing">
+  <span class="eyebrow">When testing happens</span>
+  <h2>Six kinds of testing, from day one</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Kind</th><th>When</th><th>With what</th><th>Who</th></tr></thead>
+    <tbody>
+      <tr><td><b>Unit and rules tests</b></td><td>Every build task</td><td>Planted-defect files, test inputs</td><td>Builder chat</td></tr>
+      <tr><td><b>Batch tests</b></td><td>Every agent epic</td><td>batch-1 → batch-2 (+ batch-3) → hold-out</td><td>Builder chat; scorer for the hold-out</td></tr>
+      <tr><td><b>Audits</b></td><td>Every task, before "done"</td><td>The task's proof</td><td>A fresh Auditor chat</td></tr>
+      <tr><td><b>Live project tests</b></td><td>After phases 4, 5, 6, 7 (L1–L4)</td><td>Real project briefs</td><td>The team, with Claude</td></tr>
+      <tr><td><b>Full evaluation</b></td><td>Phase 8</td><td>All sets, 3 runs each, per design tool</td><td>Agents owner</td></tr>
+      <tr><td><b>Pilot</b></td><td>Phase 8</td><td>3–5 real users on real projects</td><td>The team</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note"><b>Why live tests start early:</b> written test briefs are cleaner than real ones, and only real use shows whether the output actually saves time. Finding that out at the pilot would be too late to change the design cheaply.</p>
+</section>
+
+<section id="live">
+  <span class="eyebrow">Live project tests · epic E-18</span>
+  <h2>Testing on real projects, step by step</h2>
+  <p class="note">A <b>live project</b> is a real brief from Softude's work: a past project, or a current one used with permission. Each test goes one step further in trust.</p>
+  <div class="modes">
+    <span class="s"><b>Shadow</b>Runs in parallel; nothing reaches the client; compare with what people did</span><span class="a">→</span>
+    <span class="s"><b>Assisted</b>The team uses the output, and checks every item first</span><span class="a">→</span>
+    <span class="s"><b>Pilot</b>Users run it themselves on real projects</span>
+  </div>
+  <div class="grid4">
+    <div class="lt"><span class="id">L1 · T-18.2</span><h3>Shadow run of the skeleton</h3><dl>
+      <dt>After</dt><dd>Phase 4 (skeleton)</dd>
+      <dt>On</dt><dd>1–2 past projects</dd>
+      <dt>Mode</dt><dd>Shadow</dd>
+      <dt>Pass when</dt><dd>Runs end to end; misses and errors listed by general failure type</dd></dl></div>
+    <div class="lt"><span class="id">L2 · T-18.3</span><h3>Understand stage, live</h3><dl>
+      <dt>After</dt><dd>Phase 5 (understand)</dd>
+      <dt>On</dt><dd>A current project</dd>
+      <dt>Mode</dt><dd>Shadow, then assisted</dd>
+      <dt>Pass when</dt><dd>The BA rates the requirement and stories useful; no invented requirements; time saved measured</dd></dl></div>
+    <div class="lt"><span class="id">L3 · T-18.4</span><h3>Design, live</h3><dl>
+      <dt>After</dt><dd>Phase 6 (design)</dd>
+      <dt>On</dt><dd>The same current project</dd>
+      <dt>Mode</dt><dd>Assisted</dd>
+      <dt>Pass when</dt><dd>Designer rating ≥ 3.5/5; at most 3 feedback rounds; samples usable as a starting point</dd></dl></div>
+    <div class="lt"><span class="id">L4 · T-18.5</span><h3>End to end, live</h3><dl>
+      <dt>After</dt><dd>Phase 7 (full flow)</dd>
+      <dt>On</dt><dd>One current project</dd>
+      <dt>Mode</dt><dd>Assisted</dd>
+      <dt>Pass when</dt><dd>Completes to approved design and package; the team would use it again; usage fits the plan</dd></dl></div>
+  </div>
+  <p class="note">Each live test is a real task with sub-tasks, done-when and proof, followed by an audit (T-18.6) and acceptance (T-18.7). The pilot (T-17.3) and v1 acceptance (T-17.5) can't happen before them.</p>
+</section>
+
+<section id="rules">
+  <span class="eyebrow">Live test rules</span>
+  <h2>Before and after every live test</h2>
+  <div class="grid2">
+    <div class="card"><h3>Before (task T-18.1)</h3><ul>
+      <li>Team or Enterprise Claude seats for anyone handling client documents (not Pro or Max)</li>
+      <li>The client's permission, or a non-confidential or internal project</li>
+      <li>Personal data and secrets removed from the brief</li>
+      <li>Stitch's terms checked for client data; Figma AI training turned off</li>
+      <li>The project is not in any test set</li>
+    </ul></div>
+    <div class="card"><h3>After</h3><ul>
+      <li>Write a report in <code>docs/live-tests/</code>: measurements, what went wrong, what to change. No client names or confidential content</li>
+      <li>Add failures to the failure catalog <b>in general words only</b>, never the client, product or domain terms (rule R1)</li>
+      <li>Turn changes into inbox items; the Lead plans them</li>
+      <li>With permission, anonymise the brief and add it as a new real test document</li>
+      <li>Every later agent design task reads these reports first</li>
+    </ul></div>
+  </div>
+  <div class="tscroll"><table>
+    <thead><tr><th>What each live test measures</th><th>How</th></tr></thead>
+    <tbody>
+      <tr><td>Time spent compared with the usual way</td><td>The people involved log their time</td></tr>
+      <tr><td>Items missed</td><td>Compared with what the team produced</td></tr>
+      <tr><td>Items invented</td><td>Any requirement or screen without a source; target 0</td></tr>
+      <tr><td>Edits needed before use</td><td>Count of changed items at approval</td></tr>
+      <tr><td>Usefulness</td><td>Ratings from the BA, designer and team</td></tr>
+      <tr><td>Usage</td><td>Claude usage, Stitch generations, Figma calls per stage</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="milestones">
+  <span class="eyebrow">Milestones</span>
+  <h2>Seven checkpoints to v1</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Milestone</th><th>Reached when</th></tr></thead>
+    <tbody>
+      <tr><td class="m">M-1</td><td><b>Facts proven:</b> the spikes are reviewed and the decisions updated (T-02.8)</td></tr>
+      <tr><td class="m">M-2</td><td><b>Contracts frozen</b> (T-03.4)</td></tr>
+      <tr><td class="m">M-3</td><td><b>Skeleton runs</b> (T-06.5), then L1</td></tr>
+      <tr><td class="m">M-4</td><td><b>Understand stage accepted</b> (E-07 to E-11) and L2 done</td></tr>
+      <tr><td class="m">M-5</td><td><b>Design stage accepted</b> (E-12 to E-14), Figma gate decided, L3 done</td></tr>
+      <tr><td class="m">M-6</td><td><b>Full flow accepted</b> (E-16) and L4 done</td></tr>
+      <tr><td class="m">M-7</td><td><b>v1 accepted</b> after full evaluation, red-team and pilot (T-17.5)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="change">
+  <span class="eyebrow">How the plan changes</span>
+  <h2>Three ways</h2>
+  <div class="grid3">
+    <div class="card"><h3>New work</h3><p>Goes into <code>plans/inbox.md</code>. The Lead turns it into tasks or an epic, and the board shows them.</p></div>
+    <div class="card"><h3>Something proved wrong</h3><p>A spike, audit or live test shows a mistake: update the decision record and architecture in the same commit, then the affected tasks.</p></div>
+    <div class="card"><h3>Dropped work</h3><p>Marked <code>skipped</code>, with a decision record explaining why (for example, the Figma path moved to v1.1).</p></div>
+  </div>
+  <p class="note">Start here: <a href="https://claude.ai/artifact/KQTXqgt6ADJ5iGKqXQUETt">AI-SDLC Start Guide</a> has the first steps and copyable prompts for the chats.</p>
+</section>
+
+</div>
