@@ -39,6 +39,18 @@ def load():
     return tasks
 
 
+PASS = re.compile(r"Result:?\**\s*:?\s*PASS", re.IGNORECASE)
+SATISFIED = ("done", "skipped")
+
+
+def passed_audit(tid):
+    """True if any audit file for this task records Result: PASS."""
+    for f in AUDITS.glob(f"{tid}*.md"):
+        if PASS.search(f.read_text(encoding="utf-8")):
+            return True
+    return False
+
+
 def find_cycles(tasks):
     state, stack, cycles = {}, [], []
 
@@ -84,7 +96,7 @@ def main():
                 print(f"  {tid:8} {tasks[tid]['owner']:14} {tasks[tid]['title']}")
 
     ready = [tid for tid, t in tasks.items() if t["status"] == "todo"
-             and all(tasks.get(d, {}).get("status") == "done" for d in t["deps"])]
+             and all(tasks.get(d, {}).get("status") in SATISFIED for d in t["deps"])]
     print("\nREADY TO START")
     for tid in ready:
         t = tasks[tid]
@@ -92,11 +104,11 @@ def main():
 
     warnings = []
     for tid, t in tasks.items():
-        audited = any(AUDITS.glob(f"{tid}*.md"))
+        audited = passed_audit(tid)
         if t["status"] == "review" and not audited:
-            warnings.append(f"{tid} is in review but has no audit file in plans/audits/ yet")
+            warnings.append(f"{tid} is in review and has no passed audit yet")
         if t["status"] == "done" and t["role"] not in ("Human", "Auditor") and not audited:
-            warnings.append(f"{tid} is done without an audit file (done needs a passed audit)")
+            warnings.append(f"{tid} is done without a passed audit")
         if t["status"] == "done" and t["proof_empty"] and t["role"] != "Human":
             warnings.append(f"{tid} is done but its Proof section is empty")
         for d in t["deps"]:

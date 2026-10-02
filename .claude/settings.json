@@ -4,5 +4,18 @@
       "Read(./eval/holdout/**)",
       "Edit(./eval/holdout/**)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Read|Grep|Glob|Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/tools/guard_holdout.py\""
+          }
+        ]
+      }
+    ]
   }
 }

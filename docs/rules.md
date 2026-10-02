@@ -30,8 +30,11 @@ while looking at hold-out results item by item; only the pass/fail summary is us
 
 **Why:** once a document has been seen while fixing, it no longer tests generality.
 
-**Enforced by:** `.claude/settings.json` denies Claude reading `eval/holdout/**`; this rule; the scoring
-script prints only summary scores for the hold-out. If hold-out content is ever seen, those
+**Enforced by:** `.claude/settings.json` denies Claude's Read and Edit tools on `eval/holdout/**`, and a
+project hook (`tools/guard_holdout.py`) blocks shell, search and file tools whose paths point into the
+hold-out, except `tools/eval_score.py`, which prints only summary scores. Documents and commit messages
+may mention the folder. People follow this rule by agreement: the files are in the repo, so only habit
+keeps teammates from opening them. If hold-out content is ever seen, those
 documents move to `batch-2` and new hold-out documents are written.
 
 ## R3 · Code for exact work, AI for judgment

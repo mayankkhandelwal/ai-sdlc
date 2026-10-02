@@ -19,7 +19,11 @@ Lead (planning chat)      keeps the roadmap, sorts the inbox, picks the next tas
 | **Auditor** | A fresh chat or sub-agent, never the builder | Checks done-when against proof, reruns tests, writes the audit file | Fix things |
 | **Human** | The team | Approves plans, reviews answer keys, accepts epics, decides disagreements | — |
 
-**Status flow:** `todo` → `doing` → `review` → `done`; also `blocked` and `needs-human`.
+**Status flow:** `todo` → `doing` → `review` → `done`; also `blocked`, `needs-human`, and `skipped`
+(work dropped on purpose, e.g. the Figma path moved to v1.1; needs an ADR).
+
+**Branches:** every task works on its own branch; after its audit passes, it is merged to `main`.
+New chats always start from an up-to-date `main`.
 
 **Ready rule:** a task can start only when every task it depends on is `done`. `tools/board.py` lists ready tasks.
 

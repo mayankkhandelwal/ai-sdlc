@@ -1,7 +1,7 @@
 # Roadmap
 
 Epic -> task -> sub-task. One chat = one task. Run `python tools/board.py` to see what is ready.
-Status values: todo, doing, review, done, blocked, needs-human.
+Status values: todo, doing, review, done, blocked, needs-human, skipped (skipped needs an ADR, e.g. Figma moved to v1.1).
 
 | Epic | Title | Owner | Accepts | Tasks | Status |
 |---|---|---|---|---|---|
