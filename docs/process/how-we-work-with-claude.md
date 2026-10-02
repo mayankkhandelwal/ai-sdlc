@@ -61,21 +61,24 @@ When something breaks: reproduce it, find the real cause, fix it, and add a test
 
 ## 2. Prompts to paste
 
-**Start of a chat**
+**Start of a task chat** (in the task's own worktree folder)
 
-> Read `plans/handoff/latest.md` and `plans/tasks/T-xx-….md`. Then read only the files that task lists.
-> Tell me the goal, the done-when and your plan before changing anything.
+> You are the Builder for T-xx.y. Read `plans/handoff/latest.md`, `plans/tasks/T-xx.y-….md`, and
+> `plans/handoff/T-xx.y.md` if it exists. Then read only the files that task lists. Tell me the goal, the
+> done-when and your plan before changing anything.
 
-**End of a chat**
+**End of a task chat**
 
-> We're finishing T-xx. Update its status in `plans/roadmap.md`, rewrite `plans/handoff/latest.md`
-> using the template, run `python tools/check_generality.py`, and commit on the task branch.
+> We're finishing T-xx.y. Fill its Proof, set its status to review, write `plans/handoff/T-xx.y.md` from the
+> template, run `python tools/check_generality.py`, and commit on the task branch. Don't edit
+> `plans/roadmap.md` or `plans/handoff/latest.md`; the Lead does that.
 
-**Lead chat**
+**Lead chat** (in the main repo folder)
 
-> You are the Lead. Read `plans/handoff/latest.md`, run `python tools/board.py`, and read `plans/inbox.md`.
-> Sort the inbox, update `plans/roadmap.md`, and tell me which tasks are ready and who should take them.
-> Don't write product code.
+> You are the Lead. Read `plans/handoff/latest.md` and every `plans/handoff/T-*.md`, run
+> `python tools/board.py`, and read `plans/inbox.md`. Merge branches whose audit passed, sort the inbox,
+> update `plans/roadmap.md` and `plans/handoff/latest.md`, and tell me which tasks are ready and who should
+> take them. Don't write product code.
 
 **Audit chat**
 
@@ -85,7 +88,7 @@ When something breaks: reproduce it, find the real cause, fix it, and add a test
 
 **When the chat feels long or confused**
 
-> Stop. Write the current state into `plans/handoff/latest.md` and commit. I'll start a new chat.
+> Stop. Write the current state into `plans/handoff/T-xx.y.md` and commit. I'll start a new chat.
 
 ## 3. Keeping context small
 
@@ -100,8 +103,19 @@ When something breaks: reproduce it, find the real cause, fix it, and add a test
 
 - `main` is always working. No direct commits to `main` except the context library itself.
 - One branch per task: `t-07-2-build-v1-and-baseline`.
-- Parallel work: each owner uses their own git worktree (`superpowers:using-git-worktrees`), so
-  sessions never touch each other's files.
+- Parallel work: each task chat runs in its own git worktree, a sibling folder of the repo, so
+  sessions never touch each other's files (`superpowers:using-git-worktrees`):
+
+  ```
+  git worktree add ../AI_SDLC-t-02-2 -b t-02-2-spike-guard-hook main
+  ```
+
+  Then open a new Claude session in `../AI_SDLC-t-02-2`. Keep worktrees as **siblings** of the repo,
+  because the hold-out guard expects the hold-out folder next to the repo (or set `HOLDOUT_DIR`).
+  Remove the worktree after the merge: `git worktree remove ../AI_SDLC-t-02-2`.
+- Parallel chats write only their own task file, their own handoff (`plans/handoff/T-xx.y.md`) and the
+  files their task produces. Only the Lead edits `plans/roadmap.md` and `plans/handoff/latest.md`.
+  That way two chats never change the same file.
 - Merge through a pull request, reviewed by another owner. The pre-commit hook runs the
   generality check.
 - Commit messages say the general problem fixed, not the test document: "Critic now asks about

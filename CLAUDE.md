@@ -56,17 +56,25 @@ Every chat has one role (full method in `docs/process/how-we-work-with-claude.md
 Epic → task → sub-task. Agent epics use 7 tasks: design, build v1 + baseline, batch-1, batch-2 + regression,
 hold-out, audit, accept. An epic is accepted by someone who did not build it.
 
+## Many chats at once
+
+Several chats may run in parallel, one task each. Each task chat works in **its own git worktree**
+(a sibling folder such as `../AI_SDLC-t-02-2`) on its own branch, and writes only:
+its task file, its own handoff `plans/handoff/T-xx.y.md`, and the files the task produces.
+**Only the Lead** edits `plans/handoff/latest.md` and `plans/roadmap.md`, and merges branches after
+their audit passes.
+
 ## Starting a chat
 
-Read `plans/handoff/latest.md`, then the task file named there, then only the files the task lists.
-Say your role and task before doing anything. Set the task's status to `doing`.
+Read `plans/handoff/latest.md`, the task file, and `plans/handoff/T-xx.y.md` if it exists, then only the
+files the task lists. Say your role and task before doing anything. Set the task's status to `doing`.
 
 ## Ending a chat
 
 1. Fill the task's **Proof** section; tick sub-tasks; set status `review` (or `done` for Human tasks).
-2. Rewrite `plans/handoff/latest.md` (done / decided / next / problems).
+2. Write `plans/handoff/T-xx.y.md` from `plans/templates/handoff.md` (done / decided / next / problems).
 3. Run `python tools/check_generality.py` and `python tools/board.py`.
-4. Commit on the task's branch.
+4. Commit on the task's branch. Then an Auditor chat audits it, and the Lead merges it.
 
 ## Commands
 
