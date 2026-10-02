@@ -1,0 +1,368 @@
+<title>AI-SDLC Start Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a practical guide. What we build, what exists, how memory works, how a task flows, how parallel chats work, then the exact start steps with copyable prompts. */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --sunk:#ecede9; --line:#d7d9d2;
+  --fg:#1b1f1a; --muted:#5b6358; --accent:#1f6f4a; --accent-bg:#e2f1e8;
+  --you:#8a4b08; --you-bg:#fbeedb;
+  --chat:#2f55c8; --chat-bg:#e6ecfb;
+  --audit:#7a3fa8; --audit-bg:#f1e8fa;
+  --warn:#a3271f; --warn-bg:#fbe6e4;
+  --code-bg:#eef0eb;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121512; --surface:#1a1e1a; --sunk:#222722; --line:#323831;
+    --fg:#e5e9e3; --muted:#a2aa9f; --accent:#6fd3a0; --accent-bg:#183326;
+    --you:#f0b46a; --you-bg:#3a2a14;
+    --chat:#93acff; --chat-bg:#1f2847;
+    --audit:#cfa6f2; --audit-bg:#2c2040;
+    --warn:#ff9a92; --warn-bg:#3d1c1a;
+    --code-bg:#1f241f;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121512; --surface:#1a1e1a; --sunk:#222722; --line:#323831;
+  --fg:#e5e9e3; --muted:#a2aa9f; --accent:#6fd3a0; --accent-bg:#183326;
+  --you:#f0b46a; --you-bg:#3a2a14;
+  --chat:#93acff; --chat-bg:#1f2847;
+  --audit:#cfa6f2; --audit-bg:#2c2040;
+  --warn:#ff9a92; --warn-bg:#3d1c1a;
+  --code-bg:#1f241f;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.58;padding-inline:20px;padding-block:0 72px}
+.wrap{max-width:940px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3rem);font-weight:700}
+h2{font-size:1.75rem;font-weight:700}
+h3{font-size:1.15rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+code{font-family:var(--f-mono);font-size:.86em}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:1.1rem;color:var(--muted);max-width:68ch}
+.note{font-size:.92rem;color:var(--muted);max-width:72ch}
+header.top{padding-block:48px 26px;display:grid;gap:14px;border-bottom:1px solid var(--line)}
+section{padding-block:40px 6px;display:grid;gap:16px}
+.toc{display:flex;flex-wrap:wrap;gap:6px}
+.toc a{text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);padding:5px 11px;border-radius:7px;font-size:.88rem}
+.toc a:hover{border-color:var(--accent)}
+.toc a.go{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+
+.pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;font-weight:500;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.p-you{color:var(--you);background:var(--you-bg)}
+.p-chat{color:var(--chat);background:var(--chat-bg)}
+.p-audit{color:var(--audit);background:var(--audit-bg)}
+.p-lead{color:var(--accent);background:var(--accent-bg)}
+.p-warn{color:var(--warn);background:var(--warn-bg)}
+
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.flow span.s{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:.88rem}
+.flow span.a{color:var(--muted);font-family:var(--f-mono)}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.card p,.card li{font-size:.92rem}
+.card ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.card .path{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);overflow-wrap:anywhere}
+
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:.9rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.m{font-family:var(--f-mono);font-size:.82rem;white-space:nowrap}
+
+.life{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.life > div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:4px;align-content:start;min-width:0}
+.life b{font-family:var(--f-mono);font-size:.82rem}
+.life p{font-size:.84rem;color:var(--muted)}
+
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto}
+pre.box{margin:0;font-family:var(--f-mono);font-size:.78rem;line-height:1.55;min-width:600px;color:var(--fg)}
+
+/* start steps */
+.steps{display:grid;gap:14px;counter-reset:st}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:12px;min-width:0;position:relative}
+.step-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.step-head .num{counter-increment:st;font-family:var(--f-mono);font-weight:500;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--bg);font-size:.9rem}
+.step-head .num::before{content:counter(st)}
+.step-head h3{font-size:1.2rem}
+.step p,.step li{font-size:.94rem}
+.step ul,.step ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
+.chats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.chatcard{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:8px;background:var(--bg);min-width:0}
+.chatcard b{font-family:var(--f-display);font-size:1.02rem}
+.chatcard .who{font-size:.82rem;color:var(--muted)}
+
+.copy{position:relative;background:var(--code-bg);border-radius:8px;padding:12px 12px 12px 12px;display:grid;gap:6px;min-width:0}
+.copy .lbl{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.copy pre{margin:0;font-family:var(--f-mono);font-size:.78rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.copy button{justify-self:start;font-family:var(--f-mono);font-size:.74rem;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.copy button:hover{border-color:var(--accent)}
+.copy button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.callout{border-left:4px solid var(--warn);background:var(--warn-bg);border-radius:8px;padding:12px 14px;font-size:.92rem}
+.callout b{color:var(--warn)}
+
+@media (max-width:780px){
+  .grid2,.grid3,.chats{grid-template-columns:1fr}
+  .life{grid-template-columns:1fr 1fr}
+}
+@media (max-width:480px){
+  .life{grid-template-columns:1fr}
+}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">AI-SDLC · Design-First MVP · project guide</span>
+  <h1>AI-SDLC Start Guide</h1>
+  <p class="lead">What we're building, what already exists in the repo, how project memory works across many chats, how a task moves from start to done, how to run several chats at the same time, and exactly what to start now.</p>
+  <div class="toc">
+    <a href="#what">What we build</a><a href="#built">What's built</a><a href="#memory">How memory works</a><a href="#life">A task's life</a><a href="#parallel">Many chats at once</a><a class="go" href="#start">Start now →</a>
+  </div>
+</header>
+
+<!-- WHAT -->
+<section id="what">
+  <span class="eyebrow">What we build</span>
+  <h2>One document in, an approved design out</h2>
+  <p class="lead" style="color:var(--fg)">A Claude Code plugin with several AI agents. A user gives one project brief; the agents turn it into a clear requirement, user stories, a screen list and a full UI design in Google Stitch or Figma. People answer questions and approve at each important step.</p>
+  <div class="flow">
+    <span class="s">Read document</span><span class="a">→</span>
+    <span class="s">Requirement + questions</span><span class="a">→</span>
+    <span class="s">Stories + screen list</span><span class="a">→</span>
+    <span class="s">You approve</span><span class="a">→</span>
+    <span class="s">Style + screen messages</span><span class="a">→</span>
+    <span class="s">1–2 sample screens</span><span class="a">→</span>
+    <span class="s">Feedback or "Go"</span><span class="a">→</span>
+    <span class="s">Full UI</span>
+  </div>
+  <p class="note">The full design is in <code>docs/architecture/</code> (the master) and <code>docs/mvp-flow.md</code>. We haven't written product code yet; we've built the system to build it safely.</p>
+</section>
+
+<!-- BUILT -->
+<section id="built">
+  <span class="eyebrow">What's built</span>
+  <h2>What is in the repo now</h2>
+  <p class="note">Everything lives in <code>D:\AI-Job\AI_SDLC</code>, a git repository. Nothing important lives only in a chat.</p>
+  <div class="grid3">
+    <div class="card"><span class="pill p-lead">Memory</span><h3>Project brain</h3><p>A 1-page summary and the 11 hard rules, loaded by every chat automatically. Plus a "where we stopped" note.</p><span class="path">CLAUDE.md · plans/handoff/</span></div>
+    <div class="card"><span class="pill p-lead">Plan</span><h3>17 epics, 112 tasks</h3><p>Every task has a checklist, "done when", a proof section and what it needs from a person. A script shows what's ready.</p><span class="path">plans/roadmap.md · plans/epics/ · plans/tasks/ · tools/board.py</span></div>
+    <div class="card"><span class="pill p-lead">Rules</span><h3>11 fixed rules</h3><p>The two most important: agents must work for <b>any</b> project, and the hold-out test set stays unseen.</p><span class="path">docs/rules.md</span></div>
+    <div class="card"><span class="pill p-lead">Design</span><h3>Architecture + decisions</h3><p>The master design in 6 parts, the MVP flow, 27 decision records, and the two expert audits.</p><span class="path">docs/architecture/ · docs/adr/ · docs/audits/</span></div>
+    <div class="card"><span class="pill p-lead">Tests</span><h3>12 test documents</h3><p>12 industries, mixed quality: vague, contradictions, tables, hidden AI instructions, other languages. Answer keys are AI drafts that people must review.</p><span class="path">eval/batch-1 · batch-2 · batch-3</span></div>
+    <div class="card"><span class="pill p-lead">Safety</span><h3>Automatic checks</h3><p>A commit is blocked if a test-document word appears in agent files. A hook blocks obvious attempts to open the hold-out set. 10 tests check these tools.</p><span class="path">tools/check_generality.py · tools/guard_holdout.py · tools/tests/</span></div>
+  </div>
+</section>
+
+<!-- MEMORY -->
+<section id="memory">
+  <span class="eyebrow">How memory works</span>
+  <h2>Why a new chat still knows everything</h2>
+  <div class="grid2">
+    <div class="card"><h3>The problem</h3><ul>
+      <li>A chat forgets everything when it ends</li>
+      <li>A long chat gets worse: it forgets early rules and mixes up details ("context rot")</li>
+      <li>So chats must be short, and the knowledge must live somewhere else</li>
+    </ul></div>
+    <div class="card"><h3>The fix: files are the memory</h3><ul>
+      <li><b>CLAUDE.md</b> is read automatically by every chat</li>
+      <li>The <b>task file</b> says exactly which few files to read, never "everything"</li>
+      <li>Each chat ends by writing its <b>handoff</b> and committing</li>
+      <li>Decisions go into <b>ADR files</b>; nothing is decided "in chat only"</li>
+    </ul></div>
+  </div>
+  <div class="tscroll"><table>
+    <thead><tr><th>A new chat reads</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td class="m">CLAUDE.md</td><td>Automatically: what the project is, the rules, where things are</td></tr>
+      <tr><td class="m">plans/handoff/latest.md</td><td>The overall state, written by the Lead</td></tr>
+      <tr><td class="m">plans/tasks/T-xx.y-….md</td><td>Its one task: goal, files to read, sub-tasks, done-when</td></tr>
+      <tr><td class="m">plans/handoff/T-xx.y.md</td><td>If the task was started before: where that chat stopped</td></tr>
+      <tr><td>The files the task lists</td><td>Usually one or two architecture sections. Nothing else</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- LIFE -->
+<section id="life">
+  <span class="eyebrow">A task's life</span>
+  <h2>From "todo" to "done"</h2>
+  <div class="life">
+    <div><b>todo</b><p>Waiting. It becomes <i>ready</i> when everything it depends on is done.</p></div>
+    <div><b>doing</b><p>A Builder chat works on it in its own folder and records proof.</p></div>
+    <div><b>review</b><p>Builder finished; commits on its branch; writes its handoff.</p></div>
+    <div><b>audit</b><p>A fresh Auditor chat checks every "done when" against the proof. It never fixes.</p></div>
+    <div><b>done</b><p>Audit PASS. The Lead merges the branch into <code>main</code>.</p></div>
+  </div>
+  <div class="tscroll"><table>
+    <thead><tr><th>Role</th><th>Who</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill p-lead">Lead</span></td><td>One chat in the main repo folder</td><td>Picks ready tasks, merges after PASS audits, sorts new work from <code>plans/inbox.md</code>, keeps the roadmap. Never writes product code</td></tr>
+      <tr><td><span class="pill p-chat">Builder</span></td><td>One chat per task, in that task's own folder</td><td>Does one task, records proof, writes its handoff</td></tr>
+      <tr><td><span class="pill p-audit">Auditor</span></td><td>A new chat, never the builder's</td><td>Checks proof, reruns tests, writes PASS or FAIL</td></tr>
+      <tr><td><span class="pill p-you">You</span></td><td>You and the team</td><td>Accounts and keys, answer-key reviews, approvals, accepting finished epics</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">This works: the plan system itself needed 8 audits before it passed, and each failed audit found real problems that were then fixed.</p>
+</section>
+
+<!-- PARALLEL -->
+<section id="parallel">
+  <span class="eyebrow">Many chats at once</span>
+  <h2>Running several chats at the same time</h2>
+  <p class="lead" style="color:var(--fg)">Yes: run several task chats in parallel. Each one gets its own folder (a git worktree) and its own branch, so they never touch each other's files.</p>
+  <div class="diagram"><pre class="box">D:\AI-Job\
+  AI_SDLC\              ← main repo. The LEAD chat runs here. main branch.
+  AI_SDLC-t-02-2\       ← worktree for task T-02.2. Builder chat #1. Branch t-02-2-...
+  AI_SDLC-t-02-4\       ← worktree for task T-02.4. Builder chat #2. Branch t-02-4-...
+  AI_SDLC-t-02-7\       ← worktree for task T-02.7. Builder chat #3. Branch t-02-7-...
+  (hold-out folder)     ← outside the repo. No chat opens it.</pre></div>
+  <div class="grid2">
+    <div class="card"><h3>Rules for parallel chats</h3><ul>
+      <li>One task per chat; one chat per task</li>
+      <li>Each Builder writes only: its task file, its own handoff <code>plans/handoff/T-xx.y.md</code>, and the files its task produces</li>
+      <li>Only the Lead edits <code>plans/roadmap.md</code> and <code>plans/handoff/latest.md</code>, and merges</li>
+      <li>Keep worktrees <b>next to</b> the repo, as above</li>
+    </ul></div>
+    <div class="card"><h3>How many at once</h3><ul>
+      <li>Start with <b>3 Builder chats + 1 Lead chat</b></li>
+      <li>All chats share the same Claude subscription's usage, so more chats use it up faster. Max plan recommended</li>
+      <li>Only start tasks the board lists as ready</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- START -->
+<section id="start">
+  <span class="eyebrow">Start now</span>
+  <h2>What to do, in order</h2>
+  <div class="callout"><b>Steps 1 and 2 can run at the same time.</b> You do step 1 by hand while three Builder chats work on step 2.</div>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-head"><span class="num"></span><h3>Put the repo on GitHub</h3><span class="pill p-you">You · task T-01.3 · ~15 min</span></div>
+      <p>Right now the repo exists only on your computer. Create an <b>empty private repository</b> on GitHub (no README), then run this in <code>D:\AI-Job\AI_SDLC</code>, replacing the URL:</p>
+      <div class="copy"><span class="lbl">Terminal</span><pre>git remote add origin https://github.com/YOUR-ORG/ai-sdlc.git
+git push -u origin main</pre><button type="button">Copy</button></div>
+      <p>Then on GitHub: protect <code>main</code> (require pull requests) and invite the two other owners.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="num"></span><h3>Open 3 Builder chats in parallel</h3><span class="pill p-chat">Claude · week-1 spikes</span></div>
+      <p>These three need nothing from you. For each one: <b>(a)</b> create its folder with the command, <b>(b)</b> open a <b>new Claude Code session in that folder</b>, <b>(c)</b> paste the prompt.</p>
+      <div class="chats">
+        <div class="chatcard">
+          <b>T-02.2 · Guard hook spike</b>
+          <span class="who">Platform · proves the safety hook sees which agent calls, and blocks on crash</span>
+          <div class="copy"><span class="lbl">(a) Terminal, in D:\AI-Job\AI_SDLC</span><pre>git worktree add ../AI_SDLC-t-02-2 -b t-02-2-spike-guard-hook main</pre><button type="button">Copy</button></div>
+          <div class="copy"><span class="lbl">(c) Paste in the new session</span><pre>You are the Builder for T-02.2. Read plans/handoff/latest.md and plans/tasks/T-02.2-spike-guard-hook-identity-and-fail-closed.md. Then read only the files that task lists. Tell me the goal, the done-when and your plan before changing anything.</pre><button type="button">Copy</button></div>
+        </div>
+        <div class="chatcard">
+          <b>T-02.4 · Plugin behaviour spike</b>
+          <span class="who">Platform · command names, scripts on Windows, background agents, tool lists</span>
+          <div class="copy"><span class="lbl">(a) Terminal, in D:\AI-Job\AI_SDLC</span><pre>git worktree add ../AI_SDLC-t-02-4 -b t-02-4-spike-plugin-behaviour main</pre><button type="button">Copy</button></div>
+          <div class="copy"><span class="lbl">(c) Paste in the new session</span><pre>You are the Builder for T-02.4. Read plans/handoff/latest.md and plans/tasks/T-02.4-spike-plugin-behaviour.md. Then read only the files that task lists. Tell me the goal, the done-when and your plan before changing anything.</pre><button type="button">Copy</button></div>
+        </div>
+        <div class="chatcard">
+          <b>T-02.7 · Model bake-off</b>
+          <span class="who">Agents · same small task on Opus, Sonnet and Haiku</span>
+          <div class="copy"><span class="lbl">(a) Terminal, in D:\AI-Job\AI_SDLC</span><pre>git worktree add ../AI_SDLC-t-02-7 -b t-02-7-spike-model-bake-off main</pre><button type="button">Copy</button></div>
+          <div class="copy"><span class="lbl">(c) Paste in the new session</span><pre>You are the Builder for T-02.7. Read plans/handoff/latest.md and plans/tasks/T-02.7-spike-model-bake-off.md. Then read only the files that task lists. Tell me the goal, the done-when and your plan before changing anything.</pre><button type="button">Copy</button></div>
+        </div>
+      </div>
+      <p class="note">Each chat will show its plan first. Read it, say "go", and let it work. When it's done it sets the task to <i>review</i>, writes its handoff and commits.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="num"></span><h3>Audit each finished chat</h3><span class="pill p-audit">Claude · fresh session</span></div>
+      <p>When a Builder chat finishes, close it. Open a <b>new</b> session in the <b>same task folder</b> and paste this (change the task ID):</p>
+      <div class="copy"><span class="lbl">Paste in a new session, same folder</span><pre>You are the Auditor for T-02.2. Read plans/audits/README.md and plans/tasks/T-02.2-spike-guard-hook-identity-and-fail-closed.md. Check every done-when item against the proof, rerun the tests and the generality check, and write plans/audits/T-02.2.md with PASS or FAIL. Don't fix anything. Commit the audit file on this branch.</pre><button type="button">Copy</button></div>
+      <p>FAIL → open a new Builder chat in that folder: "You are the Builder for T-02.2. Read the task file, its handoff and <code>plans/audits/T-02.2.md</code>, and fix what the audit found."</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="num"></span><h3>Let the Lead merge</h3><span class="pill p-lead">Claude · main folder</span></div>
+      <p>Keep one Lead session open in <code>D:\AI-Job\AI_SDLC</code>. When an audit passes, paste:</p>
+      <div class="copy"><span class="lbl">Paste in the Lead session</span><pre>You are the Lead. Read plans/handoff/latest.md and every plans/handoff/T-*.md, and run python tools/board.py. Merge every task branch whose audit in plans/audits/ is PASS into main, mark those tasks done, remove their worktrees, update plans/roadmap.md and plans/handoff/latest.md, commit, and tell me which tasks are ready next. Don't write product code.</pre><button type="button">Copy</button></div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="num"></span><h3>Get accounts and keys ready, then start the other spikes</h3><span class="pill p-you">You</span></div>
+      <div class="tscroll"><table>
+        <thead><tr><th>Task</th><th>What it needs from you first</th></tr></thead>
+        <tbody>
+          <tr><td class="m">T-02.1</td><td>Stitch account and API key saved in the computer's keychain (confirm the account type)</td></tr>
+          <tr><td class="m">T-02.3</td><td>Figma Full seat on a paid plan, and the link to a test file</td></tr>
+          <tr><td class="m">T-02.6</td><td>Langfuse project keys, and a choice: Langfuse cloud or self-hosted</td></tr>
+          <tr><td class="m">T-02.5</td><td>3 real PDF briefs from past projects (non-confidential), placed where the chat can read them</td></tr>
+        </tbody>
+      </table></div>
+      <p>When ready, start each one the same way as step 2 (its own folder, new session, the same prompt with its task ID). When all 7 spikes are done, the Lead runs <b>T-02.8</b> to update the decisions from the results.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="num"></span><h3>People tasks, any time this week</h3><span class="pill p-you">You and the team</span></div>
+      <ul>
+        <li><b>T-01.4:</b> review the answer keys in <code>eval/batch-1</code>, <code>batch-2</code> and <code>batch-3</code>, and add 2–4 real documents. The agent tests need these before they can start.</li>
+        <li><b>T-01.5:</b> write the new hold-out set. Open a Claude session in a folder <b>outside</b> <code>D:\AI-Job\AI_SDLC</code> and paste the prompt from <code>plans/tasks/T-01.5-write-the-hold-out-set-outside-the-repo.md</code>. Best done by a teammate who won't build agents.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h3>Check progress any time</h3><p>In the main folder:</p><div class="copy"><span class="lbl">Terminal</span><pre>python tools/board.py</pre><button type="button">Copy</button></div><p>It lists what's ready, in progress and in review, with warnings.</p></div>
+    <div class="card"><h3>If a chat gets confused</h3><p>Paste this, then start a new chat for the same task:</p><div class="copy"><span class="lbl">Paste</span><pre>Stop. Write the current state into plans/handoff/T-02.2.md and commit. I'll start a new chat.</pre><button type="button">Copy</button></div></div>
+  </div>
+
+  <span class="eyebrow">Read more (in the repo)</span>
+  <div class="tscroll"><table>
+    <tbody>
+      <tr><td class="m">CLAUDE.md</td><td>Project summary, rules, map</td></tr>
+      <tr><td class="m">docs/process/how-we-work-with-claude.md</td><td>Roles, the task cycle, prompts, git and worktrees, testing method</td></tr>
+      <tr><td class="m">docs/rules.md</td><td>The 11 rules with reasons and limits</td></tr>
+      <tr><td class="m">plans/roadmap.md</td><td>All epics and their status</td></tr>
+      <tr><td class="m">eval/README.md</td><td>Test documents and the 3-batch method</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</div>
+
+<script>
+document.querySelectorAll('.copy button').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var pre = btn.parentElement.querySelector('pre');
+    var text = pre.textContent;
+    var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); };
+    var fallback = function () {
+      var r = document.createRange(); r.selectNodeContents(pre);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      btn.textContent = 'Selected: press Ctrl+C';
+      setTimeout(function () { btn.textContent = 'Copy'; }, 2500);
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, fallback);
+      } else { fallback(); }
+    } catch (e) { fallback(); }
+  });
+});
+</script>
