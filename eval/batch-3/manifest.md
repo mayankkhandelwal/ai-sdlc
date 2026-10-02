@@ -1,4 +1,4 @@
-# Hold-out set manifest
+# Batch-3 manifest (the retired first hold-out set)
 
 | ID | Domain | Files |
 |----|--------|-------|

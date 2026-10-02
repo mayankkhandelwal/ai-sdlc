@@ -11,10 +11,10 @@
 - T-01.2: plans as epic → task → sub-task: 17 epics, 112 tasks, each with sub-tasks, done-when, proof
   and "needs from a person"; roles Lead / Builder / Auditor / Human; inbox; audit procedure; failure catalog
 - `tools/board.py`: ready list; warns about missing proof, missing PASS audits, unknown dependencies, cycles
-- Four audits of T-01.2 failed (8, 4, 3 findings, then 7 guard bypasses out of 51 attempts); all fixed
+- Five audits of T-01.2 failed (8, 4, 3 findings; 7 guard bypasses out of 51 attempts; 2 blocking + 5 minor); all fixed
 - **Structural change for rule R2:** the hold-out set now lives outside the repo (`HOLDOUT_DIR`). The old
   in-repo set is kept as `eval/batch-3`. `tools/guard_holdout.py` blocks every tool call that points at the
-  outside folder, including writes; `tools/tests/` has 7 passing tests
+  outside folder, including writes; `tools/tests/` has 9 passing tests
 - New task **T-01.5**: a person writes the new hold-out in a separate Claude session started outside this project
 
 ## Decided

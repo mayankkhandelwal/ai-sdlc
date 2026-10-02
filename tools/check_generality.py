@@ -26,22 +26,23 @@ def holdout_dir():
 
 
 def load_terms():
-    terms = set()
-    sources = list((ROOT / "eval").rglob("banned-terms.txt"))
+    """Return {term: is_holdout}. Hold-out terms are never printed (rule R2)."""
+    terms = {}
+    sources = [(f, False) for f in (ROOT / "eval").rglob("banned-terms.txt")]
     if holdout_dir().is_dir():
-        sources += list(holdout_dir().rglob("banned-terms.txt"))
-    for f in sources:
+        sources += [(f, True) for f in holdout_dir().rglob("banned-terms.txt")]
+    for f, hidden in sources:
         for line in f.read_text(encoding="utf-8").splitlines():
             t = line.strip().lower()
             if len(t) >= MIN_LEN and not t.startswith("#"):
-                terms.add(t)
+                terms[t] = terms.get(t, False) or hidden
     allow = set()
     if ALLOW_FILE.exists():
         for line in ALLOW_FILE.read_text(encoding="utf-8").splitlines():
             t = line.split("#", 1)[0].strip().lower()
             if t:
                 allow.add(t)
-    return sorted(terms - allow)
+    return {t: h for t, h in sorted(terms.items()) if t not in allow}
 
 
 def files_to_scan(extra):
@@ -60,16 +61,18 @@ def main():
     if not terms:
         print("check_generality: no banned terms found (eval/**/banned-terms.txt)")
         return 0
-    patterns = [(t, re.compile(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", re.IGNORECASE)) for t in terms]
+    patterns = [(t, h, re.compile(r"(?<![\w-])" + re.escape(t) + r"(?![\w-])", re.IGNORECASE))
+                for t, h in terms.items()]
     hits = []
     scanned = 0
     for f in files_to_scan(sys.argv[1:]):
         scanned += 1
         text = f.read_text(encoding="utf-8", errors="replace")
         for n, line in enumerate(text.splitlines(), 1):
-            for term, pat in patterns:
+            for term, hidden, pat in patterns:
                 if pat.search(line):
-                    hits.append((f.relative_to(ROOT) if f.is_relative_to(ROOT) else f, n, term))
+                    shown = "<hold-out term>" if hidden else term
+                    hits.append((f.relative_to(ROOT) if f.is_relative_to(ROOT) else f, n, shown))
     if hits:
         print("check_generality: test-document terms found in product files (rule R1):")
         for path, n, term in hits:

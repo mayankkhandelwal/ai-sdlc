@@ -37,8 +37,9 @@ Agents under test **never read `answer-key.md`**. Only the scoring script compar
 
 ## The hold-out set
 
-- It lives **outside this repo**, in a folder named by the `HOLDOUT_DIR` environment variable on each
-  machine that runs the scorer. The project lead knows where it is.
+- It lives **outside this repo**, in a folder named by the `HOLDOUT_DIR` environment variable. Set it in
+  the environment Claude Code starts from (so the guard hook sees it), or use the default location the
+  hook expects (a sibling folder of the repo). The project lead knows where it is.
 - It is written by **a person**, in a **separate Claude session started outside this project folder**,
   ideally a teammate who will not build agents (task T-01.5). Sessions inside this project can neither
   read nor write it: the project hook `tools/guard_holdout.py` blocks them.

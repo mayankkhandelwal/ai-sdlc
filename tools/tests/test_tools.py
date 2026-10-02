@@ -15,12 +15,14 @@ NAME = "AI_SDLC" + "_hold" + "out"          # built in pieces so this file never
 H = f"D:/AI-Job/{NAME}"
 
 
-def guard(tool, **tool_input):
+def guard(tool, cwd=None, **tool_input):
     env = dict(os.environ)
-    env.pop("HOLDOUT_DIR", None)
+    env.pop("HOLDOUT" + "_DIR", None)
+    payload = {"tool_name": tool, "tool_input": tool_input}
+    if cwd:
+        payload["cwd"] = cwd
     p = subprocess.run([sys.executable, str(TOOLS / "guard_holdout.py")],
-                       input=json.dumps({"tool_name": tool, "tool_input": tool_input}),
-                       capture_output=True, text=True, env=env)
+                       input=json.dumps(payload), capture_output=True, text=True, env=env)
     return p.returncode
 
 
@@ -45,6 +47,23 @@ class GuardHoldout(unittest.TestCase):
                     f"Get-Content {H}/a.md"]:
             self.assertEqual(guard("Bash", command=cmd), 2, cmd)
         self.assertEqual(guard("PowerShell", command=f"Get-Content {H}\\a.md"), 2)
+        env = "HOLDOUT" + "_DIR"
+        self.assertEqual(guard("Bash", command=f'cat "${env}"/a/document.md'), 2)
+        self.assertEqual(guard("PowerShell", command=f"Get-ChildItem $env:{env}"), 2)
+        self.assertEqual(guard("Bash", command=f"python tools/eval_score.py --set ${env}"), 2)
+        self.assertEqual(guard("Bash", command="grep -r secret .."), 2)
+        self.assertEqual(guard("Bash", command="find .. -name '*.md'"), 2)
+
+    def test_blocks_parent_searches(self):
+        repo = str(TOOLS.parent)
+        self.assertEqual(guard("Grep", pattern="x", path="..", cwd=repo), 2)
+        self.assertEqual(guard("Grep", pattern="x", path=str(TOOLS.parent.parent)), 2)
+        self.assertEqual(guard("Grep", pattern="x", path="eval", cwd=repo), 0)
+
+    def test_fails_closed_on_bad_input(self):
+        p = subprocess.run([sys.executable, str(TOOLS / "guard_holdout.py")], input="not json",
+                           capture_output=True, text=True)
+        self.assertEqual(p.returncode, 2)
 
     def test_allows_scorer_and_unrelated(self):
         self.assertEqual(guard("Bash", command=f"python tools/eval_score.py --set {H} --runs 3"), 0)
