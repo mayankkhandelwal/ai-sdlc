@@ -22,12 +22,25 @@ or commands that walk parent folders without naming the hold-out, or that build
 its name from pieces, can still list and read it. The folder being outside the
 repo, and the rule every chat follows, are the main protection. If a call can't
 be parsed or checked, it is blocked (fail closed).
+
+Fail closed has three parts (proven in docs/spikes/T-02.2-guard.md):
+1. any error inside main() exits 2;
+2. the hook command in .claude/settings.json ends with `|| exit 2`, so a crash before
+   main(), a missing script or a missing Python also blocks;
+3. the timer below exits 2 before Claude Code's hook timeout, so a hang blocks too.
 """
-import json
 import os
-import pathlib
-import re
-import sys
+import threading
+
+TIMER_SECONDS = 5  # must stay below the "timeout" of this hook in .claude/settings.json
+_timer = threading.Timer(TIMER_SECONDS, lambda: os._exit(2))
+_timer.daemon = True
+_timer.start()
+
+import json  # noqa: E402  (the timer starts before anything else can hang)
+import pathlib  # noqa: E402
+import re  # noqa: E402
+import sys  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_NAME = "AI_SDLC" + "_hold" + "out"
@@ -112,4 +125,6 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    code = main()
+    _timer.cancel()
+    sys.exit(code)

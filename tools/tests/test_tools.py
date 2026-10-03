@@ -74,6 +74,26 @@ class GuardHoldout(unittest.TestCase):
                            capture_output=True, text=True)
         self.assertEqual(p.returncode, 2)
 
+    def test_fails_closed_on_hang(self):
+        # stdin is never closed, so the guard waits forever; its timer must block the call
+        p = subprocess.Popen([sys.executable, str(TOOLS / "guard_holdout.py")], stdin=subprocess.PIPE,
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            self.assertEqual(p.wait(timeout=20), 2)
+        finally:
+            p.kill()
+            p.stdin.close()
+
+    def test_hook_command_fails_closed(self):
+        settings = json.loads((TOOLS.parent / ".claude" / "settings.json").read_text(encoding="utf-8"))
+        hooks = [h for entry in settings["hooks"]["PreToolUse"] for h in entry["hooks"]
+                 if "guard_holdout.py" in h["command"]]
+        self.assertEqual(len(hooks), 1)
+        self.assertTrue(hooks[0]["command"].rstrip().endswith("|| exit 2"))
+        src = (TOOLS / "guard_holdout.py").read_text(encoding="utf-8")
+        timer = int(src.split("TIMER_SECONDS = ")[1].split()[0])
+        self.assertLess(timer, hooks[0]["timeout"])
+
     def test_scorer_only_from_repo(self):
         self.assertEqual(guard("Bash", cwd=str(TOOLS.parent), command=f"python tools/eval_score.py --set {H}"), 0)
         self.assertEqual(guard("Bash", cwd=str(TOOLS.parent.parent), command=f"python tools/eval_score.py --set {H}"), 2)
