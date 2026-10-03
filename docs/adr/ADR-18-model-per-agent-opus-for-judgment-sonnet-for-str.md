@@ -17,4 +17,9 @@ Confirmed or changed by the week-1 bake-off
 
 ## Notes
 
-_Add spike results or later changes here, with dates._
+- 2026-10-03, T-02.7 bake-off (`docs/spikes/T-02.7-models.md`, 18 runs on 2 batch-1 documents): **confirmed
+  with notes.** Opus is confirmed for requirement-agent and critic-agent (best coverage, every quote exact, every
+  planted contradiction, most key gaps). Sonnet held every hard rule and was the fastest, but it covered less;
+  it is kept for structured work, still to be proven per agent. Haiku broke the word-for-word quote rule and missed a
+  planted contradiction, and it was not faster: use it only for short, closed sorting questions with a code
+  check after it, never for extraction or judgment. Wording change to 4.6 goes through T-02.8.
