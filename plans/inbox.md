@@ -11,6 +11,7 @@ If it changes the architecture, it also needs an ADR.
 | Date | Who | What | Why |
 |---|---|---|---|
 | 2026-10-03 | Lead (from T-02.2) | Make `tools/guard_holdout.py` and its hook command fail closed fully: add `\|\| exit 2` to the hook command and a timer inside the guard that exits 2 before Claude Code's timeout | T-02.2 proved a crashing, missing or timed-out hook lets the call through; ADR-19 wording to update in T-02.8 |
+| 2026-10-03 | Builder (from T-02.1) | Try the Stitch MCP server live through the project `.mcp.json` in a new Claude Code session, with the key put into `STITCH_API_KEY` from the keychain for that session only (no `.env` file); compare with the script path | T-02.1 compared it on paper only; T-02.8 decides whether the agent-calls-MCP path needs a test |
 
 ## Sorted
 
