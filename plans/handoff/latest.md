@@ -1,7 +1,7 @@
 # Handoff
 
 - **Date (UTC):** 2026-10-03
-- **Last change:** T-02.1 Stitch spike merged (audit PASS on the 2nd try)
+- **Last change:** T-02.2 guard hook spike merged (audit PASS on the 1st try)
 - **Branch:** `main` (no other branches)
 - **Who:** Claude (Builder + Lead via `/next`), with the project lead
 
@@ -19,6 +19,10 @@
 - T-02.1: Stitch works through `@google/stitch-sdk` with the key read from the keychain by the script:
   3 screens (52–64 s each) + 1 edit (28 s), HTML and PNG. Result: `docs/spikes/T-02.1-stitch.md`; audit PASS
   (`plans/audits/T-02.1.md`)
+- T-02.2: the guard hook sees the caller (`agent_type`, `agent_id`; none for main) and can deny per agent (JSON
+  deny or exit 2). A hook that crashes (exit 1), is missing (127) or times out **lets the call through**;
+  `|| exit 2` on the command + a timer in the script that exits 2 first block all three. Result:
+  `docs/spikes/T-02.2-guard.md`; audit PASS (`plans/audits/T-02.2.md`)
 
 ## Decided
 
@@ -28,12 +32,12 @@
   for Stitch; Stitch renames fields; keychain reader proven on Windows only; the SDK says it is not officially supported
 - Project `.mcp.json` (Stitch MCP server, key from `${STITCH_API_KEY}`, no key in the file) is on `main` for the
   comparison only; every session will offer it. Remove or keep in T-02.8. Never put the key in a `.env` file
-- Kept from the dropped T-02.2 chat: a crashing or timed-out hook lets the call through (in `plans/inbox.md`).
-  The redone T-02.2 must prove it again
+- ADR-19 confirmed with a build change (fail closed = `try/except` → exit 2 + `|| exit 2` + in-script timer).
+  4.8 (and maybe 3.4) wording changes go through T-02.8. Hold-out guard fix stays in the inbox for the Lead
 
 ## Next
 
-- **`/next` order this week:** T-02.2, T-02.4, T-02.7 (need nothing), then T-02.1, T-02.5, T-02.6, T-02.3
+- **`/next` order this week:** T-02.4 (add the plugin-hook repeat from the inbox), T-02.7 (need nothing), then T-02.1, T-02.5, T-02.6, T-02.3
   as their needs arrive, then T-02.8, E-03, E-04, E-06
 - **Needs ready:** Stitch key: ready (Windows Credential Manager `ai-sdlc/stitch`; Workspace account, 400 left)
 - **People, days 1–2 (these set the 3-week date):**
