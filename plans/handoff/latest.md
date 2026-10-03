@@ -42,6 +42,9 @@
 
 ## Next
 
+- Figma (T-02.3): the Figma seat and file come on **Monday**. T-02.8 no longer waits for T-02.3; Figma
+  findings go into the Figma gate (T-15.1)
+
 - **`/next` order this week:** T-02.7 (needs nothing), then T-02.5, T-02.6, T-02.3
   as their needs arrive, then T-02.8, E-03, E-04, E-06
 - **Needs ready:** Stitch key: ready (Windows Credential Manager `ai-sdlc/stitch`; Workspace account, 400 left)
