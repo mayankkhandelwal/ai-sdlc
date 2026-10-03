@@ -1,7 +1,7 @@
 # Handoff
 
 - **Date (UTC):** 2026-10-03
-- **Last change:** T-02.4 plugin behaviour spike merged (audit PASS on the 1st try)
+- **Last change:** T-02.7 model bake-off spike merged (audit PASS on the 1st try)
 - **Branch:** `main` (no other branches)
 - **Who:** Claude (Builder + Lead via `/next`), with the project lead
 
@@ -28,6 +28,10 @@
   notify the main session; `tools:` limits tool names but not Bash commands (guard must); plugin hooks fail closed
   with `|| exit 2` and see `agent_type` = `mvp:<agent>`; Read `pages` needs poppler (installed here by winget).
   Result: `docs/spikes/T-02.4-plugin.md`; audit PASS (`plans/audits/T-02.4.md`)
+- T-02.7: 18 runs (Opus, Sonnet, Haiku × 3 × 2 batch-1 documents). Opus best (coverage, every quote exact, every
+  contradiction, most key gaps); Sonnet held every hard rule, fastest, but covers less; Haiku wrote non-verbatim
+  quotes, missed a planted contradiction 3/3 and was not faster. 13/18 replies put JSON in a code fence. Result:
+  `docs/spikes/T-02.7-models.md`; audit PASS (`plans/audits/T-02.7.md`)
 
 ## Decided
 
@@ -39,14 +43,16 @@
   comparison only; every session will offer it. Remove or keep in T-02.8. Never put the key in a `.env` file
 - ADR-19 confirmed with a build change (fail closed = `try/except` → exit 2 + `|| exit 2` + in-script timer).
   4.8 (and maybe 3.4) wording changes go through T-02.8. Hold-out guard fix stays in the inbox for the Lead
+- ADR-18 confirmed with notes: Opus for requirement and critic; Sonnet for structured work still to be proven per
+  agent; Haiku only for closed sorting questions with a code check after. 4.6 wording through T-02.8
 
 ## Next
 
 - Figma (T-02.3): the Figma seat and file come on **Monday**. T-02.8 no longer waits for T-02.3; Figma
   findings go into the Figma gate (T-15.1)
 
-- **`/next` order this week:** T-02.7 (needs nothing), then T-02.5, T-02.6, T-02.3
-  as their needs arrive, then T-02.8, E-03, E-04, E-06
+- **Next ready Builder tasks all need a person:** T-02.5 (3 real PDF briefs), T-02.6 (Langfuse keys, cloud or
+  self-hosted), T-02.3 (Figma seat, Monday). Run `/next <task>` when its need arrives, then T-02.8, E-03, E-04, E-06
 - **Needs ready:** Stitch key: ready (Windows Credential Manager `ai-sdlc/stitch`; Workspace account, 400 left)
 - **People, days 1–2 (these set the 3-week date):**
   - Langfuse keys and cloud or self-hosted (T-02.6), 3 real PDF briefs (T-02.5),
