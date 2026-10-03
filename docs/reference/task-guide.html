@@ -1,0 +1,324 @@
+<title>MVP Task Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a field manual. Plain-words primer, where to start, the 3-week map, then every epic as a task table with a who-filter. Same tokens as the Start Guide. */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --sunk:#ecede9; --line:#d7d9d2;
+  --fg:#1b1f1a; --muted:#5b6358; --accent:#1f6f4a; --accent-bg:#e2f1e8;
+  --you:#8a4b08; --you-bg:#fbeedb;
+  --chat:#2f55c8; --chat-bg:#e6ecfb;
+  --audit:#7a3fa8; --audit-bg:#f1e8fa;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121512; --surface:#1a1e1a; --sunk:#222722; --line:#323831;
+    --fg:#e5e9e3; --muted:#a2aa9f; --accent:#6fd3a0; --accent-bg:#183326;
+    --you:#f0b46a; --you-bg:#3a2a14; --chat:#93acff; --chat-bg:#1f2847;
+    --audit:#cfa6f2; --audit-bg:#2c2040; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121512; --surface:#1a1e1a; --sunk:#222722; --line:#323831;
+  --fg:#e5e9e3; --muted:#a2aa9f; --accent:#6fd3a0; --accent-bg:#183326;
+  --you:#f0b46a; --you-bg:#3a2a14; --chat:#93acff; --chat-bg:#1f2847;
+  --audit:#cfa6f2; --audit-bg:#2c2040; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;padding-inline:20px;padding-block:0 72px}
+.wrap{max-width:1040px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3rem);font-weight:700}
+h2{font-size:1.7rem;font-weight:700}
+h3{font-size:1.2rem;font-weight:600}
+p{margin:0}
+code{font-family:var(--f-mono);font-size:.86em}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:1.08rem;color:var(--muted);max-width:68ch}
+header.top{padding-block:48px 24px;display:grid;gap:14px;border-bottom:1px solid var(--line)}
+section.block{padding-block:36px 4px;display:grid;gap:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px;display:grid;gap:6px;align-content:start;min-width:0}
+.card p,.card li{font-size:.92rem}
+.card ul,.card ol{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.shape{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.shape span.s{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:.86rem}
+.shape span.a{color:var(--muted);font-family:var(--f-mono)}
+.start{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.start .card h3{display:flex;gap:8px;align-items:center}
+.weeks{display:grid;gap:8px}
+.wk{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;align-items:baseline}
+.wk b{font-family:var(--f-mono);font-size:.82rem}
+.wk p{font-size:.92rem}
+.wk a{color:var(--accent)}
+.filters{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--bg);padding-block:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.filters button{font-family:var(--f-body);font-size:.88rem;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+.filters button:focus-visible,.filters input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filters label{font-size:.88rem;color:var(--muted);display:flex;gap:6px;align-items:center;margin-left:auto}
+.filters .shown{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.epic{padding-block:26px 4px;display:grid;gap:10px}
+.ehead{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.eid{font-family:var(--f-mono);font-size:.82rem;color:var(--accent);font-weight:500}
+.when{font-family:var(--f-mono);font-size:.74rem;padding:2px 9px;border-radius:999px;background:var(--accent-bg);color:var(--accent)}
+.count{font-family:var(--f-mono);font-size:.74rem;color:var(--muted)}
+.edesc{color:var(--muted);max-width:75ch;font-size:.95rem}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:.9rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.id{font-family:var(--f-mono);font-size:.8rem;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pt{display:block}
+.orig{display:block;font-size:.76rem;color:var(--muted);margin-top:2px}
+.later{display:inline-block;margin-top:3px;font-family:var(--f-mono);font-size:.68rem;color:var(--muted);border:1px dashed var(--line);border-radius:6px;padding:0 6px}
+td.need{font-size:.84rem;color:var(--you);max-width:260px}
+td.need .none{color:var(--muted)}
+.who{display:inline-block;font-family:var(--f-mono);font-size:.72rem;font-weight:500;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.w-claude{color:var(--chat);background:var(--chat-bg)}
+.w-check{color:var(--audit);background:var(--audit-bg)}
+.w-you{color:var(--you);background:var(--you-bg)}
+.st{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.st-done{color:var(--accent);font-weight:500}
+tr[data-done="1"] td{opacity:.6}
+.epic[data-empty="1"]{display:none}
+@media (max-width:720px){
+  .start{grid-template-columns:1fr}
+  .wk{grid-template-columns:1fr;gap:2px}
+  .filters label{margin-left:0}
+}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="eyebrow">AI-SDLC · Design-First MVP</span>
+  <h1>MVP Task Guide</h1>
+  <p class="lead">All 119 tasks in plain words: what each one builds, who does it, and what it needs from you. The whole MVP is built in 3 weeks, then proven with real people in weeks 4–5.</p>
+</header>
+
+<section class="block" id="first">
+  <span class="eyebrow">Read this first</span>
+  <h2>How the tasks fit together</h2>
+  <div class="grid">
+    <div class="card"><h3>Epic → task</h3><p>An <b>epic</b> is one part of the product, such as the Requirement agent. It's split into <b>tasks</b>. One task is done in one chat.</p></div>
+    <div class="card"><h3>Who does it</h3><ul>
+      <li><span class="who w-claude">Claude</span> builds it in a <code>/next</code> chat</li>
+      <li><span class="who w-check">Checker</span> is an independent sub-agent that checks the proof</li>
+      <li><span class="who w-you">You</span> means you or the team: keys, reviews, approvals</li>
+    </ul></div>
+    <div class="card"><h3>How to run one</h3><p>Open a new chat in <code>D:\AI-Job\AI_SDLC</code> (worktree box unticked) and type <code>/next</code>. It picks the next ready task, shows a plan, waits for your "go", builds it, gets it checked, and merges it.</p></div>
+    <div class="card"><h3>Ready</h3><p>A task can start only when the tasks it waits for are done. <code>python tools/board.py</code> lists what's ready.</p></div>
+  </div>
+  <div class="card">
+    <h3>Every AI agent is built in the same 7 steps</h3>
+    <div class="shape">
+      <span class="s">1 Plan</span><span class="a">→</span><span class="s">2 Build + first score</span><span class="a">→</span>
+      <span class="s">3 Test on batch-1, fix</span><span class="a">→</span><span class="s">4 Test on batch-2, fix</span><span class="a">→</span>
+      <span class="s">5 Secret hold-out test</span><span class="a">→</span><span class="s">6 Check</span><span class="a">→</span><span class="s">7 Accept</span>
+    </div>
+    <p>Steps 1–4 happen in weeks 1–3. Steps 5–7 run alongside or in weeks 4–5, so they don't hold up the next agent. Batches are sets of 4 test documents from different industries, each run 3 times. Fixes must work for any project, never just one test document.</p>
+  </div>
+</section>
+
+<section class="block" id="start">
+  <span class="eyebrow">Start here</span>
+  <h2>Days 1–2</h2>
+  <div class="start">
+    <div class="card"><h3><span class="who w-claude">Claude</span> in order, with <code>/next</code></h3><ol>
+      <li><b>T-02.2</b> safety hook spike (needs nothing)</li>
+      <li><b>T-02.4</b> plugin behaviour spike (needs nothing)</li>
+      <li><b>T-02.7</b> model bake-off (needs nothing)</li>
+      <li>Then T-02.1, T-02.5, T-02.6 and T-02.3 as your items arrive, then T-02.8</li>
+    </ol></div>
+    <div class="card"><h3><span class="who w-you">You</span> on days 1–2. These set the 3-week date</h3><ol>
+      <li>Stitch API key (T-02.1)</li>
+      <li>Langfuse keys, and cloud or self-hosted (T-02.6)</li>
+      <li>3 real PDF briefs, non-confidential (T-02.5)</li>
+      <li>Figma Full seat and a test file (T-02.3)</li>
+      <li><b>T-01.4</b>: review answer keys and add real documents. Every agent build waits for this</li>
+      <li><b>T-01.5</b>: write the secret hold-out set, outside the project</li>
+      <li>1–2 past project briefs for live test L1 (end of week 1)</li>
+    </ol></div>
+  </div>
+</section>
+
+<section class="block" id="map">
+  <span class="eyebrow">3-week map</span>
+  <h2>When each epic happens</h2>
+  <div class="weeks">
+    <div class="wk"><b>Week 1</b><p><a href="#e-02">Spikes</a> → <a href="#e-03">Contracts</a> → <a href="#e-04">Platform foundations</a> → <a href="#e-06">Walking skeleton</a>. Friday: live test L1 on a past project.</p></div>
+    <div class="wk"><b>Week 2</b><p>Understand stage: <a href="#e-05">AI checker</a>, <a href="#e-07">Requirement</a>, <a href="#e-08">Critic</a>, <a href="#e-09">Questions</a>, <a href="#e-10">BA</a>, <a href="#e-11">Review page</a>. Friday: live test L2.</p></div>
+    <div class="wk"><b>Week 3</b><p>Design stage: <a href="#e-12">Design Prompt</a>, <a href="#e-13">Stitch</a>, <a href="#e-14">Samples</a>, <a href="#e-15">Figma</a>, then <a href="#e-16">Full UI and package</a>. Live tests L3 and L4.</p></div>
+    <div class="wk"><b>Weeks 4–5</b><p>Proof: hold-out tests, checks and sign-offs for every epic, <a href="#e-17">full evaluation and pilot</a> with 3–5 users, v1 accepted.</p></div>
+  </div>
+</section>
+
+<div class="filters" role="group" aria-label="Filter tasks">
+  <button type="button" data-f="all" aria-pressed="true">All tasks</button>
+  <button type="button" data-f="Claude" aria-pressed="false">Claude builds</button>
+  <button type="button" data-f="You" aria-pressed="false">You do</button>
+  <button type="button" data-f="Checker" aria-pressed="false">Checker</button>
+  <span class="shown" id="shown"></span>
+  <label for="hidedone"><input type="checkbox" id="hidedone"> Hide done</label>
+</div>
+
+<section class="epic" id="e-01">
+  <div class="ehead"><span class="eid">E-01</span><h3>Setup</h3><span class="when">Now</span><span class="count">2/5 done</span></div>
+  <p class="edesc">Repo, rules, plan and test documents. Mostly done; a few people jobs are left.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="1"><td class="id">T-01.1</td><td><span class="pt">Build the project memory: CLAUDE.md, rules, docs, decisions, test documents</span><span class="orig">Context library</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-done">done</span></td></tr><tr data-who="Claude" data-done="1"><td class="id">T-01.2</td><td><span class="pt">Build the plan system: epics, tasks, audits, inbox, board script</span><span class="orig">Plan system: epics, tasks, audits, inbox</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-done">done</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-01.3</td><td><span class="pt">GitHub: invite the other two owners (the repo is already pushed)</span><span class="orig">Push the repo to a private GitHub repository</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-01.4</td><td><span class="pt">Check the AI-written answer keys for the 12 test documents; add 2–4 real documents</span><span class="orig">Review answer keys and add real documents</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-01.5</td><td><span class="pt">Write 4 secret test documents in a folder outside the project, from a separate chat</span><span class="orig">Write the hold-out set outside the repo</span></td><td><span class="who w-you">You</span></td><td class="need">Everything: this task is done in a separate Claude session started outside this project</td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-02">
+  <div class="ehead"><span class="eid">E-02</span><h3>Spikes</h3><span class="when">Week 1 · days 1–2</span><span class="count">0/8 done</span></div>
+  <p class="edesc">Small experiments that prove how the tools really behave before we rely on them.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-02.1</td><td><span class="pt">Prove we can create a Stitch screen from a script, with the key kept safe</span><span class="orig">Spike: Stitch from a TypeScript script</span></td><td><span class="who w-claude">Claude</span></td><td class="need">Stitch account and API key saved in the OS keychain</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-02.2</td><td><span class="pt">Prove the safety hook knows which agent is acting, and blocks when it crashes</span><span class="orig">Spike: guard hook identity and fail-closed</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-02.3</td><td><span class="pt">Prove Claude can write into a Figma file (starts the Figma go/no-go test)</span><span class="orig">Spike: Figma write tool (starts the Figma gate)</span></td><td><span class="who w-claude">Claude</span></td><td class="need">Figma Full seat and the target file link</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-02.4</td><td><span class="pt">Prove how plugin commands, scripts and background agents behave on Windows</span><span class="orig">Spike: plugin behaviour</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-02.5</td><td><span class="pt">Prove exact quotes can be matched in text taken from real PDFs</span><span class="orig">Spike: quote matching on real PDFs</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-02.6</td><td><span class="pt">Prove tracing in Langfuse works and measure how much usage a run takes</span><span class="orig">Spike: Langfuse and usage numbers</span></td><td><span class="who w-claude">Claude</span></td><td class="need">Langfuse project keys; decide cloud or self-hosted</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-02.7</td><td><span class="pt">Run the same small task on Opus, Sonnet and Haiku to pick a model per agent</span><span class="orig">Spike: model bake-off</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-02.8</td><td><span class="pt">Read all spike results; fix any decision or architecture page they prove wrong</span><span class="orig">Spike review and ADR updates</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-03">
+  <div class="ehead"><span class="eid">E-03</span><h3>Contracts</h3><span class="when">Week 1 · day 3</span><span class="count">0/4 done</span></div>
+  <p class="edesc">Write down the exact file formats every part uses, so the parts fit together.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-03.1</td><td><span class="pt">Write the folder layout and the format of the saved state</span><span class="orig">Folder tree and state format</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-03.2</td><td><span class="pt">Write the exact format (schema) of every record the agents produce</span><span class="orig">Record schemas</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-03.3</td><td><span class="pt">Write how the parts talk to each other: agent results, checks, design tool, questions, traces</span><span class="orig">Interfaces</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-03.4</td><td><span class="pt">The owners read the formats and approve them</span><span class="orig">Contract sign-off</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-04">
+  <div class="ehead"><span class="eid">E-04</span><h3>Platform foundations</h3><span class="when">Week 1 · days 3–5</span><span class="count">0/9 done</span></div>
+  <p class="edesc">The engine: plugin and commands, the state script that controls the steps, safety hooks, rule checks, document reader, scanners and the test runner.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-04.1</td><td><span class="pt">The plugin itself and its first commands: /mvp:start, /mvp, /mvp:status</span><span class="orig">Plugin skeleton and commands</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-04.2</td><td><span class="pt">The state script: which step comes next and when a move is allowed</span><span class="orig">State script mvp-state</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-04.3</td><td><span class="pt">Safety and helper hooks: per-agent permissions, quick checks, masked tracing, resume</span><span class="orig">Hooks: guard, validate, trace, resume</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-04.4</td><td><span class="pt">Code checks for every record: format, IDs, links, quotes, coverage</span><span class="orig">Rules checks</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-04.5</td><td><span class="pt">Document reader: Word, PDF and Markdown into clean sections and tables</span><span class="orig">Document reader</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-04.6</td><td><span class="pt">Scanners for hidden AI instructions, secrets and personal data</span><span class="orig">Scan scripts: injection, secrets, personal data</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-04.7</td><td><span class="pt">Test runner and scorer: runs an agent on a batch and compares with the answer keys</span><span class="orig">Evaluation runner and scorer</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-04.8</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-04.9</td><td><span class="pt">A person who did not build it says yes</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-06">
+  <div class="ehead"><span class="eid">E-06</span><h3>Walking skeleton</h3><span class="when">Week 1 · day 5</span><span class="count">0/5 done</span></div>
+  <p class="edesc">The thinnest full path: one document → simple requirement → simple stories → review page → 1 Stitch screen. Proves everything connects.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-06.1</td><td><span class="pt">Plan the thinnest end-to-end path</span><span class="orig">Plan the thinnest end-to-end path</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-06.2</td><td><span class="pt">Build that path with simple checks only</span><span class="orig">Build the skeleton</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-06.3</td><td><span class="pt">Run 2 test documents through it; list what breaks</span><span class="orig">Run on 2 documents</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-06.4</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-06.5</td><td><span class="pt">A person who did not build it says yes</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-05">
+  <div class="ehead"><span class="eid">E-05</span><h3>AI checker</h3><span class="when">Week 2</span><span class="count">0/7 done</span></div>
+  <p class="edesc">The AI judge that grades outputs with scoring rules, after the code checks.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-05.1</td><td><span class="pt">Plan this agent: what it reads and writes, which model, how it can fail, how we test it</span><span class="orig">Design</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-05.2</td><td><span class="pt">Build the first version and its tests; record its first score on batch-1 before any tuning</span><span class="orig">Build v1 and baseline</span></td><td><span class="who w-claude">Claude</span></td><td class="need">your answer-key review (T-01.4)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-05.3</td><td><span class="pt">Run it on batch-1 (4 documents × 3 runs); fix the general causes of mistakes</span><span class="orig">Batch-1 test and fixes</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-05.4</td><td><span class="pt">Run it on batch-2 (4 new documents) to prove the fixes were general; re-run batch-1 to catch breakage</span><span class="orig">Batch-2 test, fixes and regression</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-05.5</td><td><span class="pt">One run on the 4 secret hold-out documents; only the score is seen</span><span class="later">weeks 4–5</span><span class="orig">Hold-out run</span></td><td><span class="who w-claude">Claude</span></td><td class="need">the secret hold-out set (T-01.5)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-05.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="later">weeks 4–5</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-05.7</td><td><span class="pt">A person who did not build it says yes</span><span class="later">weeks 4–5</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-07">
+  <div class="ehead"><span class="eid">E-07</span><h3>Requirement agent</h3><span class="when">Week 2</span><span class="count">0/7 done</span></div>
+  <p class="edesc">Reads the document and writes the requirement list, each item with the exact quote it came from.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-07.1</td><td><span class="pt">Plan this agent: what it reads and writes, which model, how it can fail, how we test it</span><span class="orig">Design</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-07.2</td><td><span class="pt">Build the first version and its tests; record its first score on batch-1 before any tuning</span><span class="orig">Build v1 and baseline</span></td><td><span class="who w-claude">Claude</span></td><td class="need">your answer-key review (T-01.4)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-07.3</td><td><span class="pt">Run it on batch-1 (4 documents × 3 runs); fix the general causes of mistakes</span><span class="orig">Batch-1 test and fixes</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-07.4</td><td><span class="pt">Run it on batch-2 (4 new documents) to prove the fixes were general; re-run batch-1 to catch breakage</span><span class="orig">Batch-2 test, fixes and regression</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-07.5</td><td><span class="pt">One run on the 4 secret hold-out documents; only the score is seen</span><span class="later">weeks 4–5</span><span class="orig">Hold-out run</span></td><td><span class="who w-claude">Claude</span></td><td class="need">the secret hold-out set (T-01.5)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-07.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="later">weeks 4–5</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-07.7</td><td><span class="pt">A person who did not build it says yes</span><span class="later">weeks 4–5</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-08">
+  <div class="ehead"><span class="eid">E-08</span><h3>Critic agent</h3><span class="when">Week 2</span><span class="count">0/7 done</span></div>
+  <p class="edesc">Finds gaps and contradictions in the requirement and ranks how important each one is.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-08.1</td><td><span class="pt">Plan this agent: what it reads and writes, which model, how it can fail, how we test it</span><span class="orig">Design</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-08.2</td><td><span class="pt">Build the first version and its tests; record its first score on batch-1 before any tuning</span><span class="orig">Build v1 and baseline</span></td><td><span class="who w-claude">Claude</span></td><td class="need">your answer-key review (T-01.4)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-08.3</td><td><span class="pt">Run it on batch-1 (4 documents × 3 runs); fix the general causes of mistakes</span><span class="orig">Batch-1 test and fixes</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-08.4</td><td><span class="pt">Run it on batch-2 (4 new documents) to prove the fixes were general; re-run batch-1 to catch breakage</span><span class="orig">Batch-2 test, fixes and regression</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-08.5</td><td><span class="pt">One run on the 4 secret hold-out documents; only the score is seen</span><span class="later">weeks 4–5</span><span class="orig">Hold-out run</span></td><td><span class="who w-claude">Claude</span></td><td class="need">the secret hold-out set (T-01.5)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-08.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="later">weeks 4–5</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-08.7</td><td><span class="pt">A person who did not build it says yes</span><span class="later">weeks 4–5</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-09">
+  <div class="ehead"><span class="eid">E-09</span><h3>Question system</h3><span class="when">Week 2</span><span class="count">0/7 done</span></div>
+  <p class="edesc">Turns gaps into small batches of easy questions, reads the answers back and shows an answer map to confirm.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-09.1</td><td><span class="pt">Plan the question builder, batches, check-ins and answer map</span><span class="orig">Design</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-09.2</td><td><span class="pt">Collect the questions, remove duplicates, group them into easy batches</span><span class="orig">Question builder and batch files</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-09.3</td><td><span class="pt">Read the answers back; check in with the user every 4 batches</span><span class="orig">Answer extraction and check-in</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-09.4</td><td><span class="pt">Test the answer map on labelled answers</span><span class="orig">Answer-map rubric: batch tests</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-09.5</td><td><span class="pt">A non-technical person answers two batches without help</span><span class="orig">Usability test with a non-technical person</span></td><td><span class="who w-you">You</span></td><td class="need">one non-technical tester</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-09.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-09.7</td><td><span class="pt">A person who did not build it says yes</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-10">
+  <div class="ehead"><span class="eid">E-10</span><h3>BA agent</h3><span class="when">Week 2</span><span class="count">0/7 done</span></div>
+  <p class="edesc">Writes user stories with Given/When/Then, user journeys and the screen list.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-10.1</td><td><span class="pt">Plan this agent: what it reads and writes, which model, how it can fail, how we test it</span><span class="orig">Design</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-10.2</td><td><span class="pt">Build the first version and its tests; record its first score on batch-1 before any tuning</span><span class="orig">Build v1 and baseline</span></td><td><span class="who w-claude">Claude</span></td><td class="need">your answer-key review (T-01.4)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-10.3</td><td><span class="pt">Run it on batch-1 (4 documents × 3 runs); fix the general causes of mistakes</span><span class="orig">Batch-1 test and fixes</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-10.4</td><td><span class="pt">Run it on batch-2 (4 new documents) to prove the fixes were general; re-run batch-1 to catch breakage</span><span class="orig">Batch-2 test, fixes and regression</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-10.5</td><td><span class="pt">One run on the 4 secret hold-out documents; only the score is seen</span><span class="later">weeks 4–5</span><span class="orig">Hold-out run</span></td><td><span class="who w-claude">Claude</span></td><td class="need">the secret hold-out set (T-01.5)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-10.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="later">weeks 4–5</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-10.7</td><td><span class="pt">A person who did not build it says yes</span><span class="later">weeks 4–5</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-11">
+  <div class="ehead"><span class="eid">E-11</span><h3>Review page</h3><span class="when">Week 2</span><span class="count">0/6 done</span></div>
+  <p class="edesc">The page where people read, comment and approve; every approval is recorded.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-11.1</td><td><span class="pt">Plan the review page, comment routing and approvals</span><span class="orig">Design</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-11.2</td><td><span class="pt">Build the review page with sources, confidence and changes between versions</span><span class="orig">Review page</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-11.3</td><td><span class="pt">Send each comment to the right agent; record approvals</span><span class="orig">Feedback routing and approvals</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-11.4</td><td><span class="pt">Security tests: nothing typed into the page can run as code</span><span class="orig">Security tests</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-11.5</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-11.6</td><td><span class="pt">A person who did not build it says yes</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-12">
+  <div class="ehead"><span class="eid">E-12</span><h3>Design Prompt agent</h3><span class="when">Week 3 · days 1–3</span><span class="count">0/7 done</span></div>
+  <p class="edesc">Writes one style message and one message per screen for the design tool.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-12.1</td><td><span class="pt">Plan this agent: what it reads and writes, which model, how it can fail, how we test it</span><span class="orig">Design</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-12.2</td><td><span class="pt">Build the first version and its tests; record its first score on batch-1 before any tuning</span><span class="orig">Build v1 and baseline</span></td><td><span class="who w-claude">Claude</span></td><td class="need">your answer-key review (T-01.4)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-12.3</td><td><span class="pt">Run it on batch-1 (4 documents × 3 runs); fix the general causes of mistakes</span><span class="orig">Batch-1 test and fixes</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-12.4</td><td><span class="pt">Run it on batch-2 (4 new documents) to prove the fixes were general; re-run batch-1 to catch breakage</span><span class="orig">Batch-2 test, fixes and regression</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-12.5</td><td><span class="pt">One run on the 4 secret hold-out documents; only the score is seen</span><span class="later">weeks 4–5</span><span class="orig">Hold-out run</span></td><td><span class="who w-claude">Claude</span></td><td class="need">the secret hold-out set (T-01.5)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-12.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="later">weeks 4–5</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-12.7</td><td><span class="pt">A person who did not build it says yes</span><span class="later">weeks 4–5</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-13">
+  <div class="ehead"><span class="eid">E-13</span><h3>Stitch connection</h3><span class="when">Week 3 · days 1–3</span><span class="count">0/7 done</span></div>
+  <p class="edesc">Sends the messages to Stitch, gets screens back and checks them.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-13.1</td><td><span class="pt">Plan the Stitch connection, the screen reader and the screen checker</span><span class="orig">Design</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-13.2</td><td><span class="pt">The Stitch script: create and edit screens, resume, stay within quota</span><span class="orig">Stitch adapter</span></td><td><span class="who w-claude">Claude</span></td><td class="need">Stitch API key in the OS keychain</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-13.3</td><td><span class="pt">Read the facts of each screen from the Stitch HTML</span><span class="orig">Screen facts parser</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-13.4</td><td><span class="pt">Check screens against the design rules and a &quot;looks right&quot; score</span><span class="orig">Screen checker and look rubric</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-13.5</td><td><span class="pt">Failure tests: quota, rate limits, slow screens, crashes</span><span class="orig">Failure tests</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-13.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-13.7</td><td><span class="pt">A person who did not build it says yes</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-14">
+  <div class="ehead"><span class="eid">E-14</span><h3>Samples and feedback</h3><span class="when">Week 3 · days 1–3</span><span class="count">0/7 done</span></div>
+  <p class="edesc">Builds 1–2 sample screens and takes feedback until the user says &quot;Go&quot;.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-14.1</td><td><span class="pt">Plan this agent: what it reads and writes, which model, how it can fail, how we test it</span><span class="orig">Design</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-14.2</td><td><span class="pt">Build the first version and its tests; record its first score on batch-1 before any tuning</span><span class="orig">Build v1 and baseline</span></td><td><span class="who w-claude">Claude</span></td><td class="need">your answer-key review (T-01.4)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-14.3</td><td><span class="pt">Run it on batch-1 (4 documents × 3 runs); fix the general causes of mistakes</span><span class="orig">Batch-1 test and fixes</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-14.4</td><td><span class="pt">Run it on batch-2 (4 new documents) to prove the fixes were general; re-run batch-1 to catch breakage</span><span class="orig">Batch-2 test, fixes and regression</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-14.5</td><td><span class="pt">One run on the 4 secret hold-out documents; only the score is seen</span><span class="later">weeks 4–5</span><span class="orig">Hold-out run</span></td><td><span class="who w-claude">Claude</span></td><td class="need">the secret hold-out set (T-01.5)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-14.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="later">weeks 4–5</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-14.7</td><td><span class="pt">A person who did not build it says yes</span><span class="later">weeks 4–5</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-15">
+  <div class="ehead"><span class="eid">E-15</span><h3>Figma path</h3><span class="when">Week 3 · days 1–3</span><span class="count">0/7 done</span></div>
+  <p class="edesc">Tests whether the Figma path is good enough. Yes → build it. No → Figma moves to v1.1.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-15.1</td><td><span class="pt">Run the Figma go/no-go test against its 7 pass marks</span><span class="orig">Run the Figma gate</span></td><td><span class="who w-claude">Claude</span></td><td class="need">Figma Full seat, target file, and a designer to rate screens</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-15.2</td><td><span class="pt">Decide: Figma in v1, another route, or Figma in v1.1. Write the decision</span><span class="orig">Gate decision</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-15.3</td><td><span class="pt">Build the layout compiler (only if the test passed)</span><span class="orig">Layout compiler</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-15.4</td><td><span class="pt">Build the Figma frame-builder agent</span><span class="orig">Frame builder agent</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-15.5</td><td><span class="pt">Run the design tests on Figma; report separately from Stitch</span><span class="orig">Design-subset batch tests</span></td><td><span class="who w-claude">Claude</span></td><td class="need">the secret hold-out set (T-01.5)</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-15.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-15.7</td><td><span class="pt">A person who did not build it says yes</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-16">
+  <div class="ehead"><span class="eid">E-16</span><h3>Full UI and package</h3><span class="when">Week 3 · days 4–5</span><span class="count">0/7 done</span></div>
+  <p class="edesc">Builds every screen, packages the result, adds the remaining commands and measures usage.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-16.1</td><td><span class="pt">Build every screen, journey by journey, within budget</span><span class="orig">Full UI build</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-16.2</td><td><span class="pt">Final approval, package, and save to the team library</span><span class="orig">Package and team library</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-16.3</td><td><span class="pt">Remaining commands: approve, go, continue, reopen, cancel, purge</span><span class="orig">Project commands</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-16.4</td><td><span class="pt">Usage test: one 30-screen project on a Max plan</span><span class="orig">Usage test: one 30-screen project on Max</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-16.5</td><td><span class="pt">Two documents from start to approved design</span><span class="orig">End-to-end on 2 documents</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-16.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-16.7</td><td><span class="pt">A person who did not build it says yes</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-18">
+  <div class="ehead"><span class="eid">E-18</span><h3>Live project tests</h3><span class="when">End of each week</span><span class="count">0/7 done</span></div>
+  <p class="edesc">L1–L4: the system on real past and current projects, with the team.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="You" data-done="0"><td class="id">T-18.1</td><td><span class="pt">Prepare live tests: seats, permissions, data rules, chosen projects</span><span class="orig">Prepare live testing</span></td><td><span class="who w-you">You</span></td><td class="need">permissions, seats, chosen projects</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-18.2</td><td><span class="pt">L1 · Shadow: run the skeleton on 1–2 past projects; compare with what the team made</span><span class="orig">Live test L1: shadow run of the skeleton</span></td><td><span class="who w-claude">Claude</span></td><td class="need">the past project briefs and what the team produced</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-18.3</td><td><span class="pt">L2 · Assisted: a BA uses the understand stage on a current project</span><span class="orig">Live test L2: understand stage on a current project</span></td><td><span class="who w-claude">Claude</span></td><td class="need">a BA on a current project</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-18.4</td><td><span class="pt">L3 · Design: samples and feedback on a current project, reviewed by a designer</span><span class="orig">Live test L3: design on a current project</span></td><td><span class="who w-claude">Claude</span></td><td class="need">a designer and the project&#x27;s BA</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-18.5</td><td><span class="pt">L4 · End to end: one current project from document to approved design</span><span class="orig">Live test L4: one project end to end</span></td><td><span class="who w-claude">Claude</span></td><td class="need">the project team</td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-18.6</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-18.7</td><td><span class="pt">A person who did not build it says yes</span><span class="orig">Accept</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+<section class="epic" id="e-17">
+  <div class="ehead"><span class="eid">E-17</span><h3>Evaluation and pilot</h3><span class="when">Weeks 4–5</span><span class="count">0/5 done</span></div>
+  <p class="edesc">Full test of everything, attack tests, 3–5 real users, then v1 is accepted.</p>
+  <div class="tscroll"><table><thead><tr><th>Task</th><th>What it does</th><th>Who</th><th>Needs from you</th><th>Status</th></tr></thead><tbody>
+  <tr data-who="Claude" data-done="0"><td class="id">T-17.1</td><td><span class="pt">Full evaluation: every batch × 3 runs, every stage, both design tools</span><span class="orig">Full evaluation</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Claude" data-done="0"><td class="id">T-17.2</td><td><span class="pt">Failure and attack tests: crashes, limits, hidden instructions, key leaks</span><span class="orig">Failure and red-team tests</span></td><td><span class="who w-claude">Claude</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-17.3</td><td><span class="pt">Pilot: 3–5 real users on real, non-confidential projects</span><span class="orig">Pilot with 3-5 users</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="Checker" data-done="0"><td class="id">T-17.4</td><td><span class="pt">An independent checker confirms every &quot;done when&quot; has proof</span><span class="orig">Audit</span></td><td><span class="who w-check">Checker</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr><tr data-who="You" data-done="0"><td class="id">T-17.5</td><td><span class="pt">Accept v1 and decide v1.1 and v2</span><span class="orig">Accept v1</span></td><td><span class="who w-you">You</span></td><td class="need"><span class="none">—</span></td><td><span class="st st-todo">todo</span></td></tr>
+  </tbody></table></div>
+</section>
+
+</div>
+
+<script>
+(function(){
+  var who='all';
+  var btns=document.querySelectorAll('.filters button');
+  var hide=document.getElementById('hidedone');
+  function apply(){
+    var n=0;
+    document.querySelectorAll('.epic').forEach(function(ep){
+      var vis=0;
+      ep.querySelectorAll('tbody tr').forEach(function(tr){
+        var ok=(who==='all'||tr.dataset.who===who)&&!(hide.checked&&tr.dataset.done==='1');
+        tr.hidden=!ok; if(ok){vis++;}
+      });
+      ep.dataset.empty=vis?'0':'1'; n+=vis;
+    });
+    document.getElementById('shown').textContent=n+' shown';
+  }
+  btns.forEach(function(b){b.addEventListener('click',function(){
+    who=b.dataset.f; btns.forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');}); apply();
+  });});
+  hide.addEventListener('change',apply);
+  apply();
+})();
+</script>

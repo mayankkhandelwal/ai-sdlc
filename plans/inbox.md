@@ -18,3 +18,5 @@ If it changes the architecture, it also needs an ADR.
 |---|---|---|---|
 | 2026-10-03 | Branch names in task files cut mid-word | Done by the Lead: all task files now use short whole-word names | `plans/tasks/` |
 | 2026-10-03 | Many chats at once was too hard to run | Changed: one task at a time, every chat in the main folder, no worktree folders. Spike work T-02.2/4/7 dropped; tasks back to todo | `CLAUDE.md`, `docs/process/` |
+| 2026-10-03 | Three chats per task is too much copy-paste | Changed: `/next` does a whole task in one chat; the Auditor is a sub-agent; the chat does the Lead's merge | `.claude/commands/next.md`, `CLAUDE.md`, `docs/process/` |
+| 2026-10-03 | Whole MVP in 2–3 weeks, nothing cut | Accepted with risks named in `docs/plan.md`. Next epics now wait for the previous agent's batch-2 task, not its hold-out and acceptance; live tests likewise | `docs/plan.md`, T-07.1, T-12.1, T-14.1, T-16.1, T-18.3–5 |

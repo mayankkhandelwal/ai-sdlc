@@ -18,20 +18,29 @@ system meets a live project.
 
 ## The phases
 
-Estimates assume 3 engineers and Claude chats running one task at a time. They are a guide; order matters more
-than dates.
+**Target (decided 2026-10-03): the whole MVP built and batch-tested in 3 weeks, then 1–2 weeks of proof
+with real people.** Nothing is cut: every epic is built. What makes it fit:
 
-| Phase | Weeks (estimate) | Epics | Result | Live test after it |
+- Claude builds; people only give accounts, review answer keys, approve and run live tests.
+- `/next` does a whole task in one chat, including the audit, so there is no hand-over time.
+- An agent epic's hold-out run, audit and acceptance no longer block the next epic; they run alongside.
+- The thin end-to-end path (E-06) is built first, at the end of week 1, and every later epic thickens it.
+
+Risks to this date, checked every Friday: the people items in week 1 (keys, answer-key review, real
+documents); Claude usage limits during batch tests (each agent runs 4 documents × 3 runs per batch);
+and one person running every task alone. With 2–3 people each running `/next` for their own area, it fits.
+
+| Phase | When | Epics | Result | Live test after it |
 |---|---|---|---|---|
 | 0 · Setup | done | E-01 | Repo, rules, plan, test documents | — |
-| 1 · Spikes | 1–2 | E-02 | Platform facts proven; ADRs updated (T-02.8) | — |
-| 2 · Contracts | 2 | E-03 | File formats and interfaces frozen | — |
-| 3 · Foundations | 3–4 | E-04, start E-05 | Plugin, state, hooks, checks, reader, scorer | — |
-| 4 · Skeleton | 5 | E-06 | Thin path: document → 1 Stitch screen | **L1 · Shadow** |
-| 5 · Understand | 6–9 | E-05, E-07, E-08, E-09, E-10, E-11 | Requirement, critic, questions, stories, review page | **L2 · Assisted** |
-| 6 · Design | 10–13 | E-12, E-13, E-14, E-15 (gate) | Design messages, Stitch, samples and feedback, Figma decision | **L3 · Design** |
-| 7 · Full flow | 14–15 | E-16 | Full UI, package, commands, usage test | **L4 · End to end** |
-| 8 · Evaluate and pilot | 16–18 | E-17 | Full evaluation, red-team, pilot with 3–5 users, v1 accepted | Pilot |
+| 1 · Spikes | Week 1, days 1–2 | E-02 | Platform facts proven; ADRs updated (T-02.8) | — |
+| 2 · Contracts | Week 1, day 3 | E-03 | File formats and interfaces frozen | — |
+| 3 · Foundations | Week 1, days 3–5 | E-04 | Plugin, state, hooks, checks, reader, scorer | — |
+| 4 · Skeleton | Week 1, day 5 | E-06 | Thin path: document → 1 Stitch screen | **L1 · Shadow** |
+| 5 · Understand | Week 2 | E-05, E-07, E-08, E-09, E-10, E-11 | Requirement, critic, questions, stories, review page | **L2 · Assisted** |
+| 6 · Design | Week 3, days 1–3 | E-12, E-13, E-14, E-15 (gate) | Design messages, Stitch, samples and feedback, Figma decision | **L3 · Design** |
+| 7 · Full flow | Week 3, days 4–5 | E-16 | Full UI, package, commands, usage test | **L4 · End to end** |
+| 8 · Evaluate and pilot | Weeks 4–5 | E-17, hold-out runs, audits, accepts | Full evaluation, red-team, pilot with 3–5 users, v1 accepted | Pilot |
 
 ## When testing happens
 
@@ -39,7 +48,7 @@ than dates.
 |---|---|---|---|
 | **Unit and rules tests** | Every build task | Planted-defect files, test inputs | Builder chat |
 | **Batch tests** | Every agent epic (tasks .3–.5) | batch-1, batch-2 (+ batch-3), then the hold-out | Builder chat; scorer for the hold-out |
-| **Audits** | Every task before "done" | The task's proof | A fresh Auditor chat |
+| **Audits** | Every task before "done" | The task's proof | An Auditor sub-agent with fresh context |
 | **Live project tests** | After phases 4, 5, 6 and 7 (L1–L4) | Real project briefs | The team, with Claude |
 | **Full evaluation** | Phase 8 | All sets, 3 runs each, per design tool | Agents owner |
 | **Pilot** | Phase 8 | 3–5 real users, real non-confidential projects | The team |

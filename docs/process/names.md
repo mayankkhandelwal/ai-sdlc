@@ -3,8 +3,8 @@
 One naming rule for everything, so nothing gets lost or mixed up. `EE` = epic number, `N` = task number
 (task `T-02.2` → `EE` = 02, `N` = 2). Folder locations come from `tools/paths.json`.
 
-We run **one task at a time**, so every chat opens in the main project folder. There are no task
-worktree folders (if we ever run tasks in parallel again, that needs an ADR first).
+We run **one task at a time per person** with `/next`, so every chat opens in the main project folder.
+There are no task worktree folders.
 
 ## Folders
 
@@ -22,8 +22,8 @@ extra is created inside the main project folder.
 | What | Name | Example |
 |---|---|---|
 | Task branch | `t-EE-N-<short-name>` (the name in the task file) | `t-02-2-spike-guard-hook` |
-| Create it (Builder, at start) | `git switch main` then `git switch -c t-EE-N-<short-name>` | — |
-| Merge it (Lead, after PASS) | `git switch main` then `git merge --no-ff t-EE-N-<short-name>` | — |
+| Create it (`/next`, at start) | `git switch main` then `git switch -c t-EE-N-<short-name>` | — |
+| Merge it (`/next`, after PASS) | `git switch main` then `git merge --no-ff t-EE-N-<short-name>` | — |
 | Commit message | What changed, in general words; never a test document or client name | "Critic now asks about error paths in multi-step approvals" |
 
 ## Files
@@ -49,10 +49,10 @@ extra is created inside the main project folder.
 
 | Chat | Name | When |
 |---|---|---|
-| Lead | `Lead` | Always open; says the next task, merges after PASS |
-| Builder for a task | `T-EE.N Builder` | New chat for each task |
-| Auditor for a task | `T-EE.N Auditor` | New chat after the Builder finishes |
-| Fix after a failed audit | `T-EE.N Builder fix K` | New chat after audit K fails |
+| A task (via `/next`) | `T-EE.N` (e.g. `T-02.2`) | New chat for each task |
+| Changing the plan | `Lead` | Only when the plan itself changes |
 | Hold-out writer | `Hold-out writer` | Opened in the hold-out folder, never the project |
 
-Close (archive) the Builder and Auditor chats once the Lead has merged the task.
+Auditors are sub-agents inside the task chat, so they need no chat of their own.
+
+Close (archive) a task chat once it has merged its task.

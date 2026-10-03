@@ -31,6 +31,7 @@ v2 becomes a SaaS product on API keys. Team: 3 engineers, owners of **Agents**, 
 | Where we stopped, what's next | `plans/handoff/latest.md` |
 | The whole plan: why, phases, testing, live projects | `docs/plan.md` |
 | What's ready, doing, in review | `python tools/board.py` |
+| All tasks in plain words, where to start | `docs/reference/task-guide.html` |
 | Epics and status | `plans/roadmap.md`, `plans/epics/E-xx-*.md` |
 | One task: sub-tasks, done-when, proof | `plans/tasks/T-xx.y-*.md` |
 | New work waiting to be sorted | `plans/inbox.md` |
@@ -50,28 +51,28 @@ v2 becomes a SaaS product on API keys. Team: 3 engineers, owners of **Agents**, 
 ## Roles
 
 Every chat has one role (full method in `docs/process/how-we-work-with-claude.md`):
-- **Lead:** plans, sorts the inbox, picks ready tasks. Never writes product code.
-- **Builder:** does one task and records proof.
-- **Auditor:** fresh context; checks done-when against proof; never fixes.
+- **Lead:** sorts the inbox, changes the plan, merges. Done at the end of each `/next` chat, or in a
+  planning chat when the plan itself changes. Never writes product code.
+- **Builder:** does one task and records proof (the `/next` chat).
+- **Auditor:** a sub-agent with fresh context; checks done-when against proof; never fixes.
 - **Human:** reviews answer keys, approves plans, accepts epics, decides disagreements.
 
 Epic → task → sub-task. Agent epics use 7 tasks: design, build v1 + baseline, batch-1, batch-2 + regression,
 hold-out, audit, accept. An epic is accepted by someone who did not build it.
 
-## One task at a time
+## One chat per task: `/next`
 
-Only **one task runs at a time**. Every chat opens in the main folder `D:/AI-Job/AI_SDLC` (the app's
-worktree box **unticked**); there are no extra worktree folders. Each task works on its own branch
-(`t-EE-N-<short-name>`). The order for every task:
+Open a new chat in `D:/AI-Job/AI_SDLC` (the app's worktree box **unticked**) and type **`/next`**
+(`.claude/commands/next.md`). That one chat does the whole task:
 
-1. **Lead** chat says which task is next and gives the Builder prompt.
-2. **`T-xx.y Builder`** (new chat) creates the branch, does the task, commits, stops.
-3. **`T-xx.y Auditor`** (new chat) checks it and writes PASS or FAIL. FAIL → `T-xx.y Builder fix K`.
-4. **Lead** merges a PASS into `main` and gives the next task.
+1. picks the first ready task, reads only what it needs, creates the task branch, shows a plan;
+2. builds after the user says "go", records proof, commits;
+3. starts an **Auditor sub-agent** (fresh context, never fixes) that writes PASS or FAIL;
+4. on PASS, does the Lead's job: merges into `main`, updates `plans/roadmap.md` and
+   `plans/handoff/latest.md`, and asks before pushing.
 
-Never start the next task before the Lead has merged the last one. A Builder writes only its task file,
-its handoff `plans/handoff/T-xx.y.md` and the files the task produces. **Only the Lead** edits
-`plans/handoff/latest.md` and `plans/roadmap.md`, and merges. Names: `docs/process/names.md`.
+One task at a time per person; no worktree folders. With more people, each person runs `/next` on their
+own computer with their area (`/next agents`, `/next platform`, `/next product`). Names: `docs/process/names.md`.
 
 ## Starting a chat
 
@@ -83,10 +84,11 @@ files the task lists. Say your role and task before doing anything. Set the task
 1. Fill the task's **Proof** section; tick sub-tasks; set status `review` (or `done` for Human tasks).
 2. Write `plans/handoff/T-xx.y.md` from `plans/templates/handoff.md` (done / decided / next / problems).
 3. Run `python tools/check_generality.py` and `python tools/board.py`.
-4. Commit on the task's branch and stay on it. Then an Auditor chat audits it, and the Lead merges it.
+4. Commit on the task's branch. Then the Auditor sub-agent audits it and the chat merges it (`/next` steps 4–5).
 
 ## Commands
 
+- `/next [task ID | area]` — do the next ready task from start to merge, in this chat
 - `python tools/check_generality.py` — blocks test-document terms in agent, skill and prompt files
 - `python tools/board.py [E-xx]` — ready, doing, review, blocked and warnings
 - `python -m unittest discover -s tools/tests` — tests for the plan and safety tools

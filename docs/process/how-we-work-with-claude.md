@@ -6,7 +6,7 @@ keeps the agents general.
 ## 0. The plan system
 
 ```
-Lead (planning chat)      keeps the roadmap, sorts the inbox, picks the next task, reads audits
+/next chat               picks the next ready task, builds it, has it audited, merges, hands off
   └─ Epic (plans/epics/)  one per agent or part, with its owner and acceptor
        └─ Task (plans/tasks/)   one chat each: sub-task checklist, done-when, proof
             └─ Audit (plans/audits/)  fresh-context check of the proof
@@ -14,9 +14,9 @@ Lead (planning chat)      keeps the roadmap, sorts the inbox, picks the next tas
 
 | Role | Who | Does | Never does |
 |---|---|---|---|
-| **Lead** | A planning chat, started when needed | Keeps `plans/roadmap.md`, sorts `plans/inbox.md`, picks ready tasks (`python tools/board.py`), reads audit results | Write product code |
-| **Builder** | A new chat per task, one task at a time | One task: plan, test first, build, record proof | Change other tasks or the plan |
-| **Auditor** | A fresh chat or sub-agent, never the builder | Checks done-when against proof, reruns tests, writes the audit file | Fix things |
+| **Lead** | The end of each `/next` chat; a planning chat only when the plan changes | Merges after PASS, keeps `plans/roadmap.md` and `plans/handoff/latest.md`, sorts `plans/inbox.md` | Write product code |
+| **Builder** | The `/next` chat, one task at a time | One task: plan, test first, build, record proof | Change other tasks or the plan |
+| **Auditor** | A sub-agent started by the `/next` chat, fresh context | Checks done-when against proof, reruns tests, writes the audit file | Fix things |
 | **Human** | The team | Approves plans, reviews answer keys, accepts epics, decides disagreements | — |
 
 **Status flow:** `todo` → `doing` → `review` → `done`; also `blocked`, `needs-human`, and `skipped`
@@ -46,7 +46,7 @@ and every later agent's design task reads it first.
 
 | Step | What happens | Skill or tool to use |
 |---|---|---|
-| 0. Start | New chat. Read `plans/handoff/latest.md` and the task file. Set status `doing`. Create the task branch | `CLAUDE.md` start steps |
+| 0. Start | New chat, `/next`. Read `plans/handoff/latest.md` and the task file. Set status `doing`. Create the task branch | `/next` |
 | 1. Understand | Read only the files the task lists. Restate the goal and "done when" in 3 lines | `agent-ready-repo:intent` |
 | 2. Plan | Write a short plan in the task file: steps, files to change, tests. Review it before coding | `superpowers:writing-plans`, `agent-ready-repo:plan-eng-review` |
 | 3. Test first | Write the failing test. For agents: pick the evaluation batch and expected checks | `superpowers:test-driven-development` |
@@ -54,42 +54,33 @@ and every later agent's design task reads it first.
 | 5. Verify | Run tests. For agents: run the batch, read 2–3 traces in Langfuse | `superpowers:verification-before-completion` |
 | 6. Review | Fresh-context review: a teammate, or a review sub-agent | `code-review`, `superpowers:requesting-code-review` |
 | 7. Finish | Record proof; update docs and ADRs if anything changed; run the generality check; set status `review`; commit; update roadmap and handoff; close the chat | `superpowers:finishing-a-development-branch`, `agent-ready-repo:document-release` |
-| 8. Audit | A fresh chat or sub-agent audits the task; pass → `done`, fail → back to `doing` | `plans/audits/README.md` |
+| 8. Audit and merge | An Auditor sub-agent audits the task; pass → merge and `done`, fail → fix and audit again | `plans/audits/README.md` |
 
 When something breaks: reproduce it, find the real cause, fix it, and add a test so it can't return
 (`agent-ready-repo:investigate`, `superpowers:systematic-debugging`).
 
-## 2. Prompts to paste
+## 2. Running a task: `/next`
 
-**Start of a task chat** (new chat in `D:/AI-Job/AI_SDLC`, named `T-xx.y Builder`)
+Open a new chat in `D:/AI-Job/AI_SDLC` (the app's worktree box unticked), name it after the task once
+you know it (`T-02.2`), and type:
 
-> You are the Builder for T-xx.y. Run `git switch main`, then create the task's branch from its task file
-> with `git switch -c <branch>`. Read `plans/handoff/latest.md`, `plans/tasks/T-xx.y-….md`, and
-> `plans/handoff/T-xx.y.md` if it exists. Then read only the files that task lists. Tell me the goal, the
-> done-when and your plan before changing anything.
+> /next
 
-**End of a task chat**
+The steps it follows are in `.claude/commands/next.md`: pick the first ready task → read only what it
+needs → branch → plan → wait for "go" → build → proof → **Auditor sub-agent** → fix until PASS → merge
+into `main` → update roadmap and handoff → ask before pushing. Then close the chat and open a new one
+for the next task. `/next T-02.4` runs a given task; `/next agents` picks a task from one area.
 
-> We're finishing T-xx.y. Fill its Proof, set its status to review, write `plans/handoff/T-xx.y.md` from the
-> template, run `python tools/check_generality.py`, and commit on the task branch. Stay on the branch. Don't edit
-> `plans/roadmap.md` or `plans/handoff/latest.md`; the Lead does that.
-
-**Lead chat** (named `Lead`, kept open)
-
-> You are the Lead. Read `plans/handoff/latest.md`, run `python tools/board.py`, and read `plans/inbox.md`.
-> If the last task's audit passed, merge its branch into `main`, mark it done, update `plans/roadmap.md` and
-> `plans/handoff/latest.md`, and commit. Then tell me the one next task and give me its Builder prompt.
-> Don't write product code.
-
-**Audit chat** (new chat, named `T-xx.y Auditor`, after the Builder finished)
-
-> You are the Auditor for T-xx.y. Stay on the current branch. Read `plans/audits/README.md` and the task file. Check every done-when
-> item against the proof, rerun the tests and the generality check, and write `plans/audits/T-xx.y.md`.
-> Don't fix anything. Commit the audit file on this branch.
+**Human tasks:** `/next` lists what the person must do and stops; do them by hand.
 
 **When the chat feels long or confused**
 
 > Stop. Write the current state into `plans/handoff/T-xx.y.md` and commit. I'll start a new chat.
+
+Then in a new chat: `/next T-xx.y` continues from that handoff.
+
+**Changing the plan** (new epics, reordering, sorting the inbox): a separate chat that says
+"You are the Lead" and names the change. It never writes product code.
 
 ## 3. Keeping context small
 
@@ -104,14 +95,13 @@ When something breaks: reproduce it, find the real cause, fix it, and add a test
 
 - `main` is always working. No direct commits to `main` except the context library itself.
 - One branch per task: `t-07-2-build-v1-and-baseline`.
-- **One task at a time.** Every chat opens in `D:/AI-Job/AI_SDLC` (the app's worktree box unticked).
-  The Builder creates the task branch there; the Auditor works on the same branch; the Lead merges it
-  into `main` after PASS. The next task starts only after that merge. No worktree folders are used
-  (running tasks in parallel again would need an ADR). Names are in `docs/process/names.md`.
-- A Builder writes only its own task file, its own handoff (`plans/handoff/T-xx.y.md`) and the files its
-  task produces. Only the Lead edits `plans/roadmap.md` and `plans/handoff/latest.md`.
-- Merge through a pull request, reviewed by another owner. The pre-commit hook runs the
-  generality check.
+- **One task at a time per person.** Every chat opens in `D:/AI-Job/AI_SDLC` (the app's worktree box
+  unticked). The `/next` chat creates the task branch, and merges it into `main` after the Auditor
+  sub-agent's PASS. No worktree folders. With more people, each works on their own computer and own
+  area (`/next agents`, `/next platform`, `/next product`), so two people never take the same task.
+- Pushing to GitHub: the chat asks first. Before starting, `/next` pulls the latest `main`.
+- The Auditor sub-agent is the review before merging; the epic's audit and acceptance tasks are the
+  second check. The pre-commit hook runs the generality check.
 - Commit messages say the general problem fixed, not the test document: "Critic now asks about
   error paths in multi-step approvals", not "fix b1-02".
 

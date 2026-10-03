@@ -131,9 +131,9 @@ pre.box{margin:0;font-family:var(--f-mono);font-size:.78rem;line-height:1.55;min
 <header class="top">
   <span class="eyebrow">AI-SDLC · Design-First MVP · project guide</span>
   <h1>AI-SDLC Start Guide</h1>
-  <p class="lead">What we're building, what already exists in the repo, how project memory works across chats, how we do <b>one task at a time</b>, and exactly what to do now.</p>
+  <p class="lead">What we're building, what already exists in the repo, how project memory works across chats, how one chat does one whole task with <code>/next</code>, and exactly what to do now. The full task list in plain words is in the <b>MVP Task Guide</b> (<code>docs/reference/task-guide.html</code>).</p>
   <div class="toc">
-    <a href="#what">What we build</a><a href="#built">What's built</a><a href="#memory">How memory works</a><a href="#life">A task's life</a><a href="#loop">One task at a time</a><a class="go" href="#start">Start now →</a>
+    <a href="#what">What we build</a><a href="#built">What's built</a><a href="#memory">How memory works</a><a href="#life">A task's life</a><a href="#loop">One chat per task</a><a class="go" href="#start">Start now →</a>
   </div>
 </header>
 
@@ -205,17 +205,17 @@ pre.box{margin:0;font-family:var(--f-mono);font-size:.78rem;line-height:1.55;min
   <h2>From "todo" to "done"</h2>
   <div class="life">
     <div><b>todo</b><p>Waiting. It becomes <i>ready</i> when everything it depends on is done.</p></div>
-    <div><b>doing</b><p>A Builder chat works on it on its own branch and records proof.</p></div>
-    <div><b>review</b><p>Builder finished; commits on its branch; writes its handoff.</p></div>
-    <div><b>audit</b><p>A fresh Auditor chat checks every "done when" against the proof. It never fixes.</p></div>
-    <div><b>done</b><p>Audit PASS. The Lead merges the branch into <code>main</code>.</p></div>
+    <div><b>doing</b><p>A <code>/next</code> chat builds it on its own branch and records proof.</p></div>
+    <div><b>review</b><p>Build finished, committed, handoff written.</p></div>
+    <div><b>audit</b><p>A checker sub-agent with fresh context checks every "done when". It never fixes.</p></div>
+    <div><b>done</b><p>PASS. The same chat merges the branch into <code>main</code> and updates the handoff.</p></div>
   </div>
   <div class="tscroll"><table>
     <thead><tr><th>Role</th><th>Who</th><th>Does</th></tr></thead>
     <tbody>
-      <tr><td><span class="pill p-lead">Lead</span></td><td>One chat named <code>Lead</code>, kept open</td><td>Tells you the next task and gives its prompt, merges after a PASS audit, sorts new work from <code>plans/inbox.md</code>, keeps the roadmap. Never writes product code</td></tr>
-      <tr><td><span class="pill p-chat">Builder</span></td><td>A new chat for each task</td><td>Does one task, records proof, writes its handoff</td></tr>
-      <tr><td><span class="pill p-audit">Auditor</span></td><td>A new chat, never the builder's</td><td>Checks proof, reruns tests, writes PASS or FAIL</td></tr>
+      <tr><td><span class="pill p-lead">Lead</span></td><td>The end of each <code>/next</code> chat</td><td>Merges after PASS, updates the roadmap and the handoff. A separate <code>Lead</code> chat only when the plan itself changes. Never writes product code</td></tr>
+      <tr><td><span class="pill p-chat">Builder</span></td><td>A new <code>/next</code> chat for each task</td><td>Does one task, records proof, writes its handoff</td></tr>
+      <tr><td><span class="pill p-audit">Auditor</span></td><td>A sub-agent the chat starts, with fresh context</td><td>Checks proof, reruns tests, writes PASS or FAIL</td></tr>
       <tr><td><span class="pill p-you">You</span></td><td>You and the team</td><td>Accounts and keys, answer-key reviews, approvals, accepting finished epics</td></tr>
     </tbody>
   </table></div>
@@ -224,34 +224,30 @@ pre.box{margin:0;font-family:var(--f-mono);font-size:.78rem;line-height:1.55;min
 
 <!-- LOOP -->
 <section id="loop">
-  <span class="eyebrow">One task at a time</span>
-  <h2>The same 4 steps for every task</h2>
-  <p class="lead" style="color:var(--fg)">We do <b>one task at a time</b>. Each task gets a new chat to build it and a new chat to check it. Every chat opens in the same folder, so there's nothing to set up and nothing to get wrong.</p>
-  <div class="diagram"><pre class="box">  ┌──────────── Lead chat (always open) ────────────┐
-  │ 1. "next"  → gives you the task + its prompt    │
-  └──────────────┬──────────────────────────────────┘
-                 ▼
-  2. New chat  "T-02.2 Builder"  → builds, commits, stops
-                 ▼
-  3. New chat  "T-02.2 Auditor"  → checks → PASS or FAIL
-                 │                        │
-                 │ PASS                   │ FAIL → new chat "T-02.2 Builder fix 1" → back to 3
-                 ▼
-  4. Lead chat  "T-02.2 audit done"  → merges into main → gives the next task
-                 ▼
-     close the Builder and Auditor chats; repeat from 1</pre></div>
+  <span class="eyebrow">One chat per task</span>
+  <h2>Type <code>/next</code>. That's the whole method</h2>
+  <p class="lead" style="color:var(--fg)">One chat does one whole task: it picks the task, plans, builds, gets an independent check, and merges. You approve its plan and answer its questions. Then you open a new chat for the next task.</p>
+  <div class="diagram"><pre class="box">  New chat in D:\AI-Job\AI_SDLC  →  type  /next
+        │
+        ├─ 1. picks the next ready task, reads only what it needs
+        ├─ 2. shows its plan  ──────────────────────────  you say "go"
+        ├─ 3. builds it, records proof, commits on the task branch
+        ├─ 4. starts a CHECKER sub-agent (fresh context)  →  PASS or FAIL
+        │        FAIL → fixes → checks again (asks you after 3 fails)
+        ├─ 5. PASS → merges into main, updates roadmap + handoff
+        └─ 6. asks you before pushing to GitHub  →  "open a new chat, type /next"</pre></div>
   <div class="grid2">
     <div class="card"><h3>Every chat, every time</h3><ul>
       <li>Folder: <code>D:\AI-Job\AI_SDLC</code></li>
       <li>The app's <b>worktree box: unticked</b></li>
-      <li>Name it straight away: <code>Lead</code>, <code>T-02.2 Builder</code>, <code>T-02.2 Auditor</code></li>
-      <li>Paste the prompt the Lead gives you</li>
+      <li>Type <code>/next</code>; name the chat after its task (<code>T-02.2</code>)</li>
+      <li>When it's merged, close it and open a new one</li>
     </ul></div>
-    <div class="card"><h3>Why one at a time</h3><ul>
-      <li>Many chats at once was hard to follow: wrong folders, wrong boxes, too many windows</li>
-      <li>One at a time: you always know what's running and why</li>
-      <li>Each task still gets its own branch, so <code>main</code> only gets checked work</li>
-      <li>Never start the next task until the Lead has merged the last one</li>
+    <div class="card"><h3>Why one chat per task</h3><ul>
+      <li>A new chat starts small and sharp: it reads only about 2,500 tokens to know the project</li>
+      <li>No copy-paste and no switching windows: the checker runs inside the chat</li>
+      <li>The checker still has fresh context, so it's independent</li>
+      <li>With 2–3 people: <code>/next agents</code>, <code>/next platform</code>, <code>/next product</code>, each on their own computer</li>
     </ul></div>
   </div>
 </section>
@@ -260,46 +256,25 @@ pre.box{margin:0;font-family:var(--f-mono);font-size:.78rem;line-height:1.55;min
 <section id="start">
   <span class="eyebrow">Start now</span>
   <h2>What to do, in order</h2>
-  <div class="callout"><b>Do these in order.</b> Steps 3 to 5 are the loop: repeat them for every task.</div>
+  <div class="callout"><b>Target: the whole MVP built in 3 weeks.</b> Steps 2 and 3 start on day 1, at the same time.</div>
 
   <div class="steps">
 
     <div class="step">
-      <div class="step-head"><span class="num"></span><h3>Finish GitHub setup</h3><span class="pill p-you">You · task T-01.3 · ~10 min</span></div>
-      <p>The repo is already on GitHub. On GitHub, protect <code>main</code> (require pull requests) and invite the two other owners.</p>
+      <div class="step-head"><span class="num"></span><h3>Finish GitHub setup</h3><span class="pill p-you">You · task T-01.3 · ~5 min</span></div>
+      <p>The repo is already on GitHub. Invite the two other owners.</p>
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="num"></span><h3>Open the Lead chat (once)</h3><span class="pill p-lead">Claude · keep it open</span></div>
-      <p>New session, folder <code>D:\AI-Job\AI_SDLC</code>, worktree box <b>unticked</b>, name it <code>Lead</code>. Paste:</p>
-      <div class="copy"><span class="lbl">Paste in the Lead chat</span><pre>You are the Lead. Read plans/handoff/latest.md, run python tools/board.py, and read plans/inbox.md. If the last task's audit passed, merge its branch into main, mark it done, update plans/roadmap.md and plans/handoff/latest.md, and commit. Then tell me the one next task and give me its Builder prompt. Don't write product code.</pre><button type="button">Copy</button></div>
-      <p class="note">Later, just type "next" or "T-02.2 audit done" in this same chat.</p>
+      <div class="step-head"><span class="num"></span><h3>Run the first task</h3><span class="pill p-chat">Claude · new chat</span></div>
+      <p>New session, folder <code>D:\AI-Job\AI_SDLC</code>, worktree box <b>unticked</b>. Type:</p>
+      <div class="copy"><span class="lbl">Type in the new chat</span><pre>/next</pre><button type="button">Copy</button></div>
+      <p>It will pick <b>T-02.2</b> (the safety hook spike), show its plan and wait. Say "go". When it says the task is merged, close the chat, open a new one and type <code>/next</code> again. The next ones are T-02.4 and T-02.7.</p>
+      <p class="note">If a chat gets long or confused, say: "Stop. Write the current state into plans/handoff/T-xx.y.md and commit." Then in a new chat: <code>/next T-xx.y</code>.</p>
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="num"></span><h3>Build the task (the first one is T-02.2)</h3><span class="pill p-chat">Claude · new chat</span></div>
-      <p>New session, same folder, box unticked, name it <code>T-02.2 Builder</code>. Paste the prompt the Lead gives you. For the first task it is:</p>
-      <div class="copy"><span class="lbl">Paste in the Builder chat</span><pre>You are the Builder for T-02.2. Run git switch main, then create the task's branch from its task file with git switch -c &lt;branch&gt;. Read plans/handoff/latest.md and plans/tasks/T-02.2-spike-guard-hook-identity-and-fail-closed.md. Then read only the files that task lists. Tell me the goal, the done-when and your plan before changing anything.</pre><button type="button">Copy</button></div>
-      <p class="note">It shows its plan first. Say "go". When it says it has committed and set the task to <i>review</i>, the build is finished.</p>
-    </div>
-
-    <div class="step">
-      <div class="step-head"><span class="num"></span><h3>Check the task</h3><span class="pill p-audit">Claude · new chat</span></div>
-      <p>New session, same folder, box unticked, name it <code>T-02.2 Auditor</code>. Paste (change the task ID for later tasks):</p>
-      <div class="copy"><span class="lbl">Paste in the Auditor chat</span><pre>You are the Auditor for T-02.2. Stay on the current branch. Read plans/audits/README.md and plans/tasks/T-02.2-spike-guard-hook-identity-and-fail-closed.md. Check every done-when item against the proof, rerun the tests and the generality check, and write plans/audits/T-02.2.md with PASS or FAIL. Don't fix anything. Commit the audit file on this branch.</pre><button type="button">Copy</button></div>
-      <p>FAIL → new chat <code>T-02.2 Builder fix 1</code>: "You are the Builder for T-02.2. Stay on the current branch. Read the task file, its handoff and the failed audit in plans/audits/, and fix what the audit found." Then check again with a new Auditor chat.</p>
-    </div>
-
-    <div class="step">
-      <div class="step-head"><span class="num"></span><h3>Merge and get the next task</h3><span class="pill p-lead">Claude · Lead chat</span></div>
-      <p>Go back to the <code>Lead</code> chat and type:</p>
-      <div class="copy"><span class="lbl">Type in the Lead chat</span><pre>T-02.2 audit done</pre><button type="button">Copy</button></div>
-      <p>The Lead merges it, then gives you the next task and its prompt. Close the Builder and Auditor chats, and go back to step 3.</p>
-      <p class="note">Order after T-02.2: T-02.4, T-02.7. Then T-02.1, T-02.3, T-02.5 and T-02.6 once their keys and files are ready (next step), then T-02.8.</p>
-    </div>
-
-    <div class="step">
-      <div class="step-head"><span class="num"></span><h3>Get accounts and keys ready, then start the other spikes</h3><span class="pill p-you">You</span></div>
+      <div class="step-head"><span class="num"></span><h3>Get accounts and keys ready (days 1–2)</h3><span class="pill p-you">You</span></div>
       <div class="tscroll"><table>
         <thead><tr><th>Task</th><th>What it needs from you first</th></tr></thead>
         <tbody>
@@ -309,11 +284,11 @@ pre.box{margin:0;font-family:var(--f-mono);font-size:.78rem;line-height:1.55;min
           <tr><td class="m">T-02.5</td><td>3 real PDF briefs from past projects (non-confidential), placed where the chat can read them</td></tr>
         </tbody>
       </table></div>
-      <p>Tell the Lead when one is ready; it will put that task next. When all 7 spikes are done, <b>T-02.8</b> updates the decisions from the results.</p>
+      <p>When one is ready, start a new chat with <code>/next T-02.1</code> (or that task's ID). When all 7 spikes are done, <b>T-02.8</b> updates the decisions from the results.</p>
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="num"></span><h3>People tasks, any time this week</h3><span class="pill p-you">You and the team</span></div>
+      <div class="step-head"><span class="num"></span><h3>People tasks, days 1–2</h3><span class="pill p-you">You and the team</span></div>
       <ul>
         <li><b>T-01.4:</b> review the answer keys in <code>eval/batch-1</code>, <code>batch-2</code> and <code>batch-3</code>, and add 2–4 real documents. The agent tests need these before they can start.</li>
         <li><b>T-01.5:</b> write the new hold-out set. Open a Claude session in a folder <b>outside</b> <code>D:\AI-Job\AI_SDLC</code> and paste the prompt from <code>plans/tasks/T-01.5-write-the-hold-out-set-outside-the-repo.md</code>. Best done by a teammate who won't build agents.</li>
