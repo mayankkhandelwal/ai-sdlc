@@ -1,7 +1,7 @@
 # Handoff
 
 - **Date (UTC):** 2026-10-03
-- **Last change:** T-02.2 guard hook spike merged (audit PASS on the 1st try)
+- **Last change:** T-02.4 plugin behaviour spike merged (audit PASS on the 1st try)
 - **Branch:** `main` (no other branches)
 - **Who:** Claude (Builder + Lead via `/next`), with the project lead
 
@@ -23,6 +23,11 @@
   deny or exit 2). A hook that crashes (exit 1), is missing (127) or times out **lets the call through**;
   `|| exit 2` on the command + a timer in the script that exits 2 first block all three. Result:
   `docs/spikes/T-02.2-guard.md`; audit PASS (`plans/audits/T-02.2.md`)
+- T-02.4 (Windows only): commands are always `/mvp:<verb>` (no bare `/mvp`); `bin/` is on the Bash tool PATH,
+  not PowerShell's; Python scripts need a bash wrapper that probes `py -3`/`python3`/`python`; background agents
+  notify the main session; `tools:` limits tool names but not Bash commands (guard must); plugin hooks fail closed
+  with `|| exit 2` and see `agent_type` = `mvp:<agent>`; Read `pages` needs poppler (installed here by winget).
+  Result: `docs/spikes/T-02.4-plugin.md`; audit PASS (`plans/audits/T-02.4.md`)
 
 ## Decided
 
@@ -37,7 +42,7 @@
 
 ## Next
 
-- **`/next` order this week:** T-02.4 (add the plugin-hook repeat from the inbox), T-02.7 (need nothing), then T-02.5, T-02.6, T-02.3
+- **`/next` order this week:** T-02.7 (needs nothing), then T-02.5, T-02.6, T-02.3
   as their needs arrive, then T-02.8, E-03, E-04, E-06
 - **Needs ready:** Stitch key: ready (Windows Credential Manager `ai-sdlc/stitch`; Workspace account, 400 left)
 - **People, days 1–2 (these set the 3-week date):**
@@ -48,6 +53,9 @@
   - T-01.3: invite the other owners; T-18.1: past project briefs for live test L1 (end of week 1)
 
 ## Problems and open questions
+
+- macOS/Linux not proven for bin scripts and poppler (inbox); T-02.8 must not treat them as settled
+- GitHub repo `mayankkhandelwal/ai-sdlc` is **public**; T-01.3 says private. Lead to decide
 
 - Answer keys are AI drafts until T-01.4
 - Claude usage limits during batch tests; evaluation API budget

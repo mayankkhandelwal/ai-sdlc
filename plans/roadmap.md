@@ -6,7 +6,7 @@ Status values: todo, doing, review, done, blocked, needs-human, skipped (skipped
 | Epic | Title | Owner | Accepts | Tasks | Status |
 |---|---|---|---|---|---|
 | E-01 | [Setup](epics/E-01-setup.md) | Project lead | Project lead | 2/5 | doing |
-| E-02 | [Week-1 spikes](epics/E-02-week-1-spikes.md) | Platform | Project lead | 2/8 | doing |
+| E-02 | [Week-1 spikes](epics/E-02-week-1-spikes.md) | Platform | Project lead | 3/8 | doing |
 | E-03 | [Contracts](epics/E-03-contracts.md) | All owners | Project lead | 0/4 | todo |
 | E-04 | [Platform foundations](epics/E-04-platform-foundations.md) | Platform | Platform owner (not the builder) or project lead | 0/9 | todo |
 | E-05 | [AI checker and gating rubrics](epics/E-05-ai-checker-and-gating-rubrics.md) | Agents | Platform owner | 0/7 | todo |
